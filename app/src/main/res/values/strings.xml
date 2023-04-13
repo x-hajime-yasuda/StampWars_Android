@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">STAMP WARS</string>
+    <string name="menu_home">選択</string>
+    <string name="menu_camera">カメラ</string>
+    <string name="menu_config">設定</string>
+    <string name="term_title">利用規約</string>
+    <string name="term_bt_agree">同意</string>
+    <string name="term_of_service" translatable="false"><b>【スタンプウォーズ利用規約】</b>\n\n\nこの利用規約（以下，「本規約」といいます。）は，＿＿＿＿＿（以下，「当社」といいます。）がこのウェブサイト上で提供するサービス（以下，「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下，「ユーザー」といいます。）には，本規約に従って，本サービスをご利用いただきます。この利用規約（以下，「本規約」といいます。）は，＿＿＿＿＿（以下，「当社」といいます。）がこのウェブサイト上で提供するサービス（以下，「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下，「ユーザー」といいます。）には，本規約に従って，本サービスをご利用いただきます。この利用規約（以下，「本規約」といいます。）は，＿＿＿＿＿（以下，「当社」といいます。）がこのウェブサイト上で提供するサービス（以下，「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下，「ユーザー」といいます。）には，本規約に従って，本サービスをご利用いただきます。この利用規約（以下，「本規約」といいます。）は，＿＿＿＿＿（以下，「当社」といいます。）がこのウェブサイト上で提供するサービス（以下，「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下，「ユーザー」といいます。）には，本規約に従って，本サービスをご利用いただきます。</string>
+    <string name="stamp_get">取得スタンプ数</string>
+    <string name="stamp_count">0/99個</string>
+    <string name="stamp_spot_name">校舎の屋上の奥の奥</string>
+
+    <string name="rally_title_01">スタンプラリー 01</string>
+    <string name="rally_detail_01">2024年 1月 1日 〜 2024年 1月10日\n\n 蒲郡に来ると、みんな魚が大好きになる。
+
+新鮮で美味しい魚は、蒲郡の誇り。蒲郡市民はもちろん、蒲郡を訪れたみんなに魚を大好きになってもらおうと、蒲郡市では、市内のスーパー、飲食店、旅館やホテルなどにお魚紹介カードを設置し、まちじゅうを水族館にする取り組みを行なっています。
+
+そんなまちじゅう食べる水族館が、この秋スタンプラリーを行います！
+        この秋スタンプラリーを行います！この秋スタンプラリーを行います！この秋スタンプラリーを行います！この秋スタンプラリーを行います！
+        この秋スタンプラリーを行います！この秋スタンプラリーを行います！この秋スタンプラリーを行います！この秋スタンプラリーを行います！
+        この秋スタンプラリーを行います！この秋スタンプラリーを行います！この秋スタンプラリーを行います！この秋スタンプラリーを行います！
+        この秋スタンプラリーを行います！この秋スタンプラリーを行います！この秋スタンプラリーを行います！この秋スタンプラリーを行います！
+        この秋スタンプラリーを行います！この秋スタンプラリーを行います！この秋スタンプラリーを行います！この秋スタンプラリーを行います！
+</string>
+
+    <string name="dialog_title_permission">Please allow permission</string>
+    <string name="dialog_message_camera_permission">Couldn\'t access to camera.\nPlease allow permission from \"App Info\", to code scan</string>
+    <string name="toast_permission_required">toast_permission_required.</string>
+
+    <string name="cancel">キャンセル</string>
+    <string name="ok">OK</string>
+
+</resources>
