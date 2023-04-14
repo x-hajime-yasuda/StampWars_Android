@@ -9,11 +9,30 @@
     android:background="@drawable/shape_stamp_list"
     android:layout_marginLeft="10dp"
     android:layout_marginRight="10dp"
-    android:layout_marginTop="100dp"
+    android:layout_marginTop="110dp"
     android:layout_marginBottom="100dp"
     android:topRightRadius="10dp"
     android:topLeftRadius="10dp"
     android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="20dp"
+        android:textColor="#FFFFFF"
+        android:lines="2"
+        android:text="@string/stamp_get" />
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="20dp"
+        android:textColor="#FF0000"
+        android:lines="1"
+        android:text="@string/stamp_count" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"

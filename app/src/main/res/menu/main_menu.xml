@@ -9,10 +9,3 @@
     android:icon="@android:drawable/ic_menu_camera"
     android:title="@string/menu_camera" />
 </menu>
-
-<!--
-<item
-    android:id="@+id/menu_settings"
-    android:icon="@android:drawable/ic_menu_preferences"
-    android:title="@string/menu_config" />
--->
