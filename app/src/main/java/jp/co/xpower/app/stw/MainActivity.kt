@@ -7,11 +7,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.recyclerview.widget.GridLayoutManager
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import jp.co.xpower.app.stw.databinding.ActivityMainBinding
 import jp.co.xpower.app.stw.databinding.TermsOfServiceBinding
 
@@ -20,7 +17,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var termsBinding: TermsOfServiceBinding
     private lateinit var googleMap: GoogleMap
     private lateinit var mapFragment: SupportMapFragment
-    private lateinit var bottomSheet :BottomSheetFragment
 
     // テストデータ作成
     private fun populateStamp() {
@@ -53,14 +49,13 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         // タイトルバー非表示
         supportActionBar?.hide()
 
-        // Map表示
+        // Map表示 Mapテスト時以外非活性
         /*
         mapFragment = supportFragmentManager.findFragmentById(R.id.map_fragment) as SupportMapFragment
         mapFragment.getMapAsync {
@@ -73,8 +68,7 @@ class MainActivity : AppCompatActivity() {
         }
         */
 
-
-        // スタンプ表示
+        // スタンプ表示切り替え
         binding.buttonStamp.setOnClickListener {
             val layout = binding.layoutStamp
             if(layout.layout.visibility == View.VISIBLE){
@@ -87,17 +81,19 @@ class MainActivity : AppCompatActivity() {
 
         // テストデータ設定
         populateStamp()
-
+        // スタンプデータ設定
         binding.layoutStamp.recyclerView.apply {
             layoutManager = GridLayoutManager(context, 2)
             adapter = StampAdapter(stampList)
         }
 
+        // ボトムメニュー ボタンイベント
         binding.bottomNavigation.setOnItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.menu_home -> {
-                    bottomSheet = BottomSheetFragment()
-                    bottomSheet.show(supportFragmentManager, BottomSheetFragment.TAG)
+                    // ボトムシート表示
+                    BottomSheetFragment.newInstance(0).show(supportFragmentManager, "dialog")
+
                     true
                 }
                 R.id.menu_profile -> {
@@ -105,12 +101,13 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                     true
                 }
-                //R.id.menu_settings -> {
-                //    true
-                //}
+                R.id.menu_gift -> {
+                    // 報酬表示
+                    BottomSheetFragment.newInstance(3).show(supportFragmentManager, "dialog")
+                    true
+                }
                 else -> false
             }
         }
-
     }
 }
