@@ -8,8 +8,4 @@
     android:id="@+id/menu_profile"
     android:icon="@android:drawable/ic_menu_camera"
     android:title="@string/menu_camera" />
-    <item
-        android:id="@+id/menu_gift"
-        android:icon="@android:drawable/ic_menu_compass"
-        android:title="@string/menu_present" />
 </menu>

@@ -16,19 +16,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clipToPadding="false"
-            android:paddingTop="@dimen/list_item_spacing_half"
-            android:paddingBottom="@dimen/list_item_spacing_half"
-            tools:context=".BottomSheetFragment"
             app:layout_constraintHeight_default="percent"
             app:layout_constraintHeight_percent="1.0"
+            tools:context=".BottomSheetFragment"
             tools:listitem="@layout/fragment_rally_list_dialog_item" />
 
     </FrameLayout>
+    <!--
     <FrameLayout
         android:id="@+id/detail"
         android:visibility="invisible"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        tools:ignore="MissingConstraints">
 
         <Button
             android:id="@+id/button_back"
@@ -37,9 +37,12 @@
             android:layout_marginRight="20dp"
             android:text="戻る"/>
 
-        <include android:id="@+id/layout_detail" layout="@layout/fragment_rally_list_dialog_item"/>
+
+
+        <include android:id="@+id/layout_detail" layout="@layout/fragment_rally_detail"/>
 
     </FrameLayout>
+    -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

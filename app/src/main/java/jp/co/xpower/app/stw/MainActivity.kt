@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
 
     // テストデータ作成
     private fun populateStamp() {
-        for (i in 1..8) {
+        for (i in 1..15) {
             var stamp = Stamp(
                 R.drawable.sumi1,
                 "校舎の屋上の奥の奥に (%d)".format(i)
@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
         populateStamp()
         // スタンプデータ設定
         binding.layoutStamp.recyclerView.apply {
-            layoutManager = GridLayoutManager(context, 2)
+            layoutManager = GridLayoutManager(context, 4)
             adapter = StampAdapter(stampList)
         }
 
@@ -101,11 +101,13 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                     true
                 }
+                /*
                 R.id.menu_gift -> {
                     // 報酬表示
                     BottomSheetFragment.newInstance(3).show(supportFragmentManager, "dialog")
                     true
                 }
+                */
                 else -> false
             }
         }

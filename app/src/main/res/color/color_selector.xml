@@ -3,4 +3,7 @@
     <item android:state_checked="true" android:color="#111111"/>
     <item android:state_checked="false" android:color="#444444"/>
     <item android:state_pressed="true" android:color="#ffffff" />
+
+    <color android:name="button_color" android:color="#ffffaab3"/>
+    <color android:name="button_highlight_color" android:color="#ff4081"/>
 </selector>

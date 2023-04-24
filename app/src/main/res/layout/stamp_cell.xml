@@ -9,10 +9,10 @@
     android:id="@+id/cardView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:cardCornerRadius="10dp"
-    android:layout_margin="15dp"
+    app:cardCornerRadius="5dp"
+    android:layout_margin="5dp"
     android:clickable="true"
-    app:cardElevation="8dp">
+    app:cardElevation="5dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -59,7 +59,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
-                android:textSize="16dp"
+                android:textSize="14dp"
                 android:text="@string/rally_title_01"/>
         </LinearLayout>
 
