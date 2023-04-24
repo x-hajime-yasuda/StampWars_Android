@@ -9,6 +9,7 @@
         android:id="@+id/list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:visibility="visible"
         tools:ignore="MissingConstraints">
 
         <androidx.recyclerview.widget.RecyclerView
@@ -29,14 +30,28 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <Button
-            android:id="@+id/button_back"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="20dp"
-            android:text="戻る"/>
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:id="@+id/cover"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:src="@drawable/kindergarten1"
+                android:adjustViewBounds="true"
+                android:layout_gravity="center"
+                android:contentDescription="Cover"/>
+            <Button
+                android:id="@+id/button_back"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|right"
+                android:layout_marginRight="20dp"
+                android:text="戻る"/>
+        </FrameLayout>
 
-        <include android:id="@+id/layout_detail" layout="@layout/fragment_rally_list_dialog_item"/>
+
+        <!-- <include android:id="@+id/layout_detail" layout="@layout/fragment_rally_list_dialog_item"/> -->
 
     </FrameLayout>
 
