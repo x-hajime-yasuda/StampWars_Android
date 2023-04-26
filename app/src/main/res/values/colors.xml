@@ -8,6 +8,28 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <color name="list_background_color">#555555FF</color>
     <color name="button_color">#5555ff</color>
     <color name="button_highlight_color">#aaaaff</color>
+    <color name="transparent_status_bar">#225555FF</color>
+    <!--
+    <color name="list_background_color">#55FF5555</color>
+    <color name="button_color">#ff5555</color>
+    <color name="button_highlight_color">#ffaaaa</color>
+    <color name="transparent_status_bar">#22FF5555</color>
+    -->
+    <!--
+    <color name="list_background_color">#5555FF55</color>
+    <color name="button_color">#55ff55</color>
+    <color name="button_highlight_color">#aaffaa</color>
+    <color name="transparent_status_bar">#2255ff55</color>
+    -->
+    <!--
+    <color name="list_background_color">#55555555</color>
+    <color name="button_color">#555555</color>
+    <color name="button_highlight_color">#aaaaaa</color>
+    <color name="transparent_status_bar">#22555555</color>
+    -->
+
+
 </resources>

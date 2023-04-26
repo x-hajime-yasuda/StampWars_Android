@@ -9,10 +9,11 @@
     android:id="@+id/cardView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:cardCornerRadius="5dp"
-    android:layout_margin="5dp"
+    android:background="@color/black"
+    app:cardCornerRadius="2dp"
+    android:layout_margin="1dp"
     android:clickable="true"
-    app:cardElevation="5dp">
+    app:cardElevation="2dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -33,16 +34,16 @@
                     android:src="@drawable/sumi1"
                     android:adjustViewBounds="true"
                     android:layout_gravity="center"
+                    android:alpha="0.5"
                     android:contentDescription="Cover"/>
-
                 <!--
                 <TextView
                     android:id="@+id/title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
                     android:gravity="center"
-                    android:textSize="16dp"
-                    android:layout_gravity="bottom|center_horizontal"
+                    android:textSize="28dp"
                     android:text="@string/rally_title_01"/>
                 -->
             </FrameLayout>
@@ -58,8 +59,11 @@
                 android:id="@+id/title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit="marquee_forever"
                 android:gravity="center"
-                android:textSize="14dp"
+                android:textSize="12dp"
                 android:text="@string/rally_title_01"/>
         </LinearLayout>
 

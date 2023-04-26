@@ -12,7 +12,6 @@ import jp.co.xpower.app.stw.databinding.*
 
 
 // TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
@@ -71,7 +70,7 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
     private fun populateStamp() {
         for (i in 1..9) {
             var rally = Rally(
-                R.drawable.randoseru1,
+                R.drawable.rally,
                 "学園祭 - %d".format(i),
                 "報酬未定\n報酬未定\n報酬未定\n"
             )

@@ -40,6 +40,11 @@ class CodeScanner(
         )
     }
 
+    fun close(){
+        workerExecutor.shutdown()
+        scanner.close()
+    }
+
     fun start() {
         val future = ProcessCameraProvider.getInstance(activity)
         future.addListener({
@@ -82,5 +87,8 @@ class CodeScanner(
             val next = !(torchState.value ?: false)
             it.cameraControl.enableTorch(next)
         }
+    }
+    fun getState(): Boolean {
+        return torchState.value!!
     }
 }

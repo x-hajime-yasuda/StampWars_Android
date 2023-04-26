@@ -65,7 +65,8 @@ class BottomSheetFragment : BottomSheetDialogFragment(), RecyclerViewListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
-        val adapter = TabPagerAdapter(childFragmentManager, lifecycle)
+        // paramで詳細などデータを連携する
+        val adapter = TabPagerAdapter("param1", childFragmentManager, lifecycle)
 
         binding.layout.viewPager.adapter = adapter
 
@@ -113,7 +114,7 @@ class BottomSheetFragment : BottomSheetDialogFragment(), RecyclerViewListener {
     }
 
     companion object {
-        // TODO: Customize parameters
+        // MainActivityから渡されるパラメータ
         fun newInstance(itemCount: Int): BottomSheetFragment =
             BottomSheetFragment().apply {
                 arguments = Bundle().apply {

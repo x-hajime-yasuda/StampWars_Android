@@ -61,7 +61,7 @@ class RewardFragment : Fragment(), RewardClickListener {
     private fun populateReward() {
         for (i in 1..10) {
             var rally = Rally(
-                R.drawable.randoseru1,
+                R.drawable.rally,
                 "学園祭 - %d".format(i),
                 "報酬１２３４５\n報酬１２３４５\n報酬１２３４５\n報酬１２３４５\n報酬１２３４５\n"
             )

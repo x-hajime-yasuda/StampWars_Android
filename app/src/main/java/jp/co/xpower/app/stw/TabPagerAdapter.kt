@@ -5,12 +5,12 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 
-class TabPagerAdapter(fragmentManager: FragmentManager, lifecycle: Lifecycle) : FragmentStateAdapter(fragmentManager, lifecycle) {
+class TabPagerAdapter(private val param: String, fragmentManager: FragmentManager, lifecycle: Lifecycle) : FragmentStateAdapter(fragmentManager, lifecycle) {
 
     private val fragments: ArrayList<Fragment> = arrayListOf(
         RallyPublicFragment(),
-        RallyPublicFragment.newInstance("a"),
-        RallyPublicFragment.newInstance("a")
+        RallyPublicFragment.newInstance(param),
+        RallyPublicFragment.newInstance(param)
     )
 
     override fun getItemCount() : Int = 3

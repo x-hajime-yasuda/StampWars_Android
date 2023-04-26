@@ -4,29 +4,71 @@ import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.style.AbsoluteSizeSpan
 import android.util.Log
 import android.view.View
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.snackbar.Snackbar
 import jp.co.xpower.app.stw.databinding.ActivityMainBinding
+import jp.co.xpower.app.stw.databinding.RallyCellBinding
 import jp.co.xpower.app.stw.databinding.TermsOfServiceBinding
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
     private lateinit var binding: ActivityMainBinding
     private lateinit var termsBinding: TermsOfServiceBinding
     private lateinit var googleMap: GoogleMap
     private lateinit var mapFragment: SupportMapFragment
+    private lateinit var cameraLauncher: ActivityResultLauncher<Intent>
+
+    companion object {
+        const val  EXTRA_MESSAGE ="jp.co.xpower.app.stw.camera_activity.MESSAGE"
+    }
 
     // テストデータ作成
     private fun populateStamp() {
-        for (i in 1..15) {
+        for (i in 1..21) {
             var stamp = Stamp(
                 R.drawable.sumi1,
                 "校舎の屋上の奥の奥に (%d)".format(i)
             )
             stampList.add(stamp)
         }
+    }
+
+    private fun TextView.changeSizeOfText(target: String, size: Int){
+
+        // 対象となる文字列を引数に渡し、SpannableStringBuilderのインスタンスを生成
+        val spannable = SpannableStringBuilder(target + "/99個")
+
+        // Spanを組み込む
+        spannable.setSpan(
+            AbsoluteSizeSpan(size, true),
+            0, // start
+            //target.length, // end
+            1, // end
+            Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+
+        // TextViewにSpannableStringBuilderをセット
+        text = spannable
+    }
+
+    override fun onMarkerClick(marker: Marker): Boolean {
+
+        return false
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,12 +103,31 @@ class MainActivity : AppCompatActivity() {
         mapFragment.getMapAsync {
             Log.i("MainActivity Map ======>", "map.ready")
             googleMap = it
+            googleMap.setOnMarkerClickListener(this)
 
             val tokyo = LatLng(35.681167, 139.767052)
             googleMap.addMarker(MarkerOptions().position(tokyo).title("東京駅"))
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(tokyo, 15f))
         }
         */
+
+        // Camera結果の取得
+        cameraLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ){ result ->
+            if (result.resultCode == RESULT_OK) {
+                val text = result.data?.getStringExtra(MainActivity.EXTRA_MESSAGE) ?: ""
+                Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+
+                binding.layoutStamp.layout.visibility = View.VISIBLE
+
+                val builder = AlertDialog.Builder(this)
+                builder.setView(layoutInflater.inflate(R.layout.camera_result, null))
+                val dialog = builder.create()
+                dialog!!.window!!.setBackgroundDrawableResource(android.R.color.transparent)
+                dialog.show()
+            }
+        }
 
         // スタンプ表示切り替え
         binding.buttonStamp.setOnClickListener {
@@ -87,6 +148,10 @@ class MainActivity : AppCompatActivity() {
             adapter = StampAdapter(stampList)
         }
 
+        // 獲得数だけ強調表示
+        binding.layoutStamp.textGet.changeSizeOfText("3", 38)
+
+
         // ボトムメニュー ボタンイベント
         binding.bottomNavigation.setOnItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
@@ -98,16 +163,11 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.menu_profile -> {
                     val intent = Intent(this, CameraActivity::class.java)
-                    startActivity(intent)
+                    //startActivity(intent)
+                    cameraLauncher.launch(intent)
+
                     true
                 }
-                /*
-                R.id.menu_gift -> {
-                    // 報酬表示
-                    BottomSheetFragment.newInstance(3).show(supportFragmentManager, "dialog")
-                    true
-                }
-                */
                 else -> false
             }
         }

@@ -64,12 +64,6 @@
                             android:layout_marginRight="5dp"
                             android:layout_gravity="bottom|right"
                             android:src="@drawable/joinning"/>
-                        <!--<ImageView
-                            android:layout_width="90dp"
-                            android:layout_height="62dp"
-                            android:layout_marginLeft="5dp"
-                            android:layout_gravity="bottom|left"
-                            android:src="@drawable/select"/>-->
                     </FrameLayout>
                     <TextView
                         android:id="@+id/text_place"
@@ -130,7 +124,7 @@
         android:id="@+id/button_join"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="80dp"
-        android:background="@drawable/rounded_background"
+        style="@style/Stw_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="参加する/選択する" />

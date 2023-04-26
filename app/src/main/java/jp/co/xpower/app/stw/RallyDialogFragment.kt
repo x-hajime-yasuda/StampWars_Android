@@ -6,9 +6,14 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.Window
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
+import com.google.android.material.snackbar.BaseTransientBottomBar
+import com.google.android.material.snackbar.Snackbar
 import jp.co.xpower.app.stw.databinding.FragmentRallyDialogBinding
 
 
@@ -44,8 +49,25 @@ class RallyDialogFragment : DialogFragment() {
         binding = FragmentRallyDialogBinding.inflate(layoutInflater)
 
         binding.buttonJoin.setOnClickListener {
-            Log.i("aAA","wrwerw")
+
+            val textColor = resources.getColor(R.color.white, requireContext().theme)
+            val backgroundColor = resources.getColor(R.color.list_background_color, requireContext().theme)
+
+            val snackBar = Snackbar.make(requireView(), "参加しました。", Snackbar.LENGTH_SHORT)
+            snackBar.addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                override fun onShown(transientBottomBar: Snackbar?) {
+                    super.onShown(transientBottomBar)
+                }
+                override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                    super.onDismissed(transientBottomBar, event)
+                    dismiss()
+                }
+            })
+            snackBar.view.setBackgroundColor(backgroundColor);
+            snackBar.setTextColor(textColor)
+            snackBar.show()
         }
+
         return binding.root
     }
 

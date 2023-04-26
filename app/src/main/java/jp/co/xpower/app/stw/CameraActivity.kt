@@ -1,14 +1,23 @@
 package jp.co.xpower.app.stw
 
+import android.app.ActionBar
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.view.PreviewView
-import jp.co.xpower.app.stw.databinding.ActivityCameraBinding
 import com.google.mlkit.vision.barcode.common.Barcode
+import jp.co.xpower.app.stw.databinding.ActivityCameraBinding
+import jp.co.xpower.app.stw.databinding.CameraOverlayBinding
+
 
 class CameraActivity : AppCompatActivity(), PermissionDialog.OnCancelListener {
 
+    private lateinit var cameraOverlayBinding: CameraOverlayBinding
     private lateinit var viewBinding: ActivityCameraBinding
     private var previewView: PreviewView? = null
     private lateinit var codeScanner: CodeScanner
@@ -21,7 +30,14 @@ class CameraActivity : AppCompatActivity(), PermissionDialog.OnCancelListener {
     private fun onDetectCode(codes: List<Barcode>) {
         codes.forEach {
             val value = it.rawValue
-            Toast.makeText(this, value, Toast.LENGTH_SHORT).show()
+
+            val intentSub = Intent()
+            intentSub.putExtra(MainActivity.EXTRA_MESSAGE, value)
+            setResult(Activity.RESULT_OK, intentSub)
+
+            // 検知でスキャナーとカメラを終了
+            codeScanner.close()
+            super.finish()
         }
     }
 
@@ -56,10 +72,35 @@ class CameraActivity : AppCompatActivity(), PermissionDialog.OnCancelListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        cameraOverlayBinding = CameraOverlayBinding.inflate(layoutInflater)
         viewBinding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
         previewView = viewBinding.viewFinder
+
+        val imageView = ImageView(this)
+        val params: RelativeLayout.LayoutParams = RelativeLayout.LayoutParams(
+            ActionBar.LayoutParams.MATCH_PARENT, ActionBar.LayoutParams.WRAP_CONTENT
+        )
+        params.setMargins(10, 10, 0,0)
+        imageView.setImageResource(R.drawable.close)
+
+        cameraOverlayBinding.imageClose.setOnClickListener {
+            codeScanner.close()
+            super.finish()
+        }
+        cameraOverlayBinding.imageFlash.setOnClickListener {
+            codeScanner.toggleTorch()
+
+            if(codeScanner.getState()){
+                cameraOverlayBinding.imageFlash.setImageResource(R.drawable.flash_on)
+            }
+            else {
+                cameraOverlayBinding.imageFlash.setImageResource(R.drawable.flash_off)
+            }
+        }
+
+        addContentView(cameraOverlayBinding.root, params)
 
         codeScanner = CodeScanner(this, viewBinding.viewFinder, ::onDetectCode)
         if (CameraPermission.hasPermission(this)) {

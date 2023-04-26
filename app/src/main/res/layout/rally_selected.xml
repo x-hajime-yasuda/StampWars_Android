@@ -6,7 +6,7 @@
     android:id="@+id/layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/shape_stamp_list"
+    android:background="@drawable/list_background"
     android:layout_margin="10dp"
     android:orientation="horizontal">
 
