@@ -1,12 +1,13 @@
 <resources>
     <string name="app_name">STAMP WARS</string>
-    <string name="menu_home">選択</string>
-    <string name="menu_camera">カメラ</string>
+    <string name="menu_home">ラリー選択</string>
+    <string name="menu_camera">QRコード</string>
     <string name="menu_config">設定</string>
     <string name="menu_present">特典</string>
     <string name="term_title">利用規約</string>
     <string name="term_bt_agree">同意</string>
     <string name="term_of_service" translatable="false"><b>【スタンプウォーズ利用規約】</b>\n\n\nこの利用規約（以下，「本規約」といいます。）は，＿＿＿＿＿（以下，「当社」といいます。）がこのウェブサイト上で提供するサービス（以下，「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下，「ユーザー」といいます。）には，本規約に従って，本サービスをご利用いただきます。この利用規約（以下，「本規約」といいます。）は，＿＿＿＿＿（以下，「当社」といいます。）がこのウェブサイト上で提供するサービス（以下，「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下，「ユーザー」といいます。）には，本規約に従って，本サービスをご利用いただきます。この利用規約（以下，「本規約」といいます。）は，＿＿＿＿＿（以下，「当社」といいます。）がこのウェブサイト上で提供するサービス（以下，「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下，「ユーザー」といいます。）には，本規約に従って，本サービスをご利用いただきます。この利用規約（以下，「本規約」といいます。）は，＿＿＿＿＿（以下，「当社」といいます。）がこのウェブサイト上で提供するサービス（以下，「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下，「ユーザー」といいます。）には，本規約に従って，本サービスをご利用いただきます。</string>
+    <string name="stamp">スタンプ</string>
     <string name="stamp_get">スタンプの数</string>
     <string name="stamp_count">0/99</string>
     <string name="stamp_spot_name">校舎の屋上の奥の奥</string>
@@ -14,6 +15,11 @@
     <string name="stamp_camera_qr_error">スタンプウォーズに対応していないQRが読み込まれました。</string>
 
     <string name="sys_button_close">閉じる</string>
+
+    <string name="receive_msg_please">受付の方に画面を提示してください</string>
+    <string name="receive_mas_warning">一度受付すると元には戻せません</string>
+    <string name="back_to_stamp_card">スタンプカードに戻る</string>
+    <string name="after_receive_msg">景品の受け取りが完了しました</string>
 
     <string name="tab_in_session">開催中</string>
     <string name="tab_joining">参加中</string>

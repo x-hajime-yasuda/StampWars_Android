@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -146,6 +147,18 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         binding.layoutStamp.recyclerView.apply {
             layoutManager = GridLayoutManager(context, 4)
             adapter = StampAdapter(stampList)
+        }
+
+        // 報酬獲得画面の表示
+        binding.layoutStamp.buttonReward.setOnClickListener {
+            binding.layoutReward.layout.visibility = View.VISIBLE
+            binding.layoutStamp.layout.visibility = View.GONE
+        }
+
+        // 報酬獲得画面を閉じてスタンプカード画面を表示
+        binding.layoutReward.btBackStampList.setOnClickListener {
+            binding.layoutReward.layout.visibility = View.GONE
+            binding.layoutStamp.layout.visibility = View.VISIBLE
         }
 
         // 獲得数だけ強調表示

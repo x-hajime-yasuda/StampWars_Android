@@ -22,18 +22,48 @@
 
         <include android:id="@+id/layout_selected" android:visibility="visible" layout="@layout/rally_selected"/>
 
-        <ImageView
-            android:id="@+id/button_stamp"
-            android:layout_width="80dp"
+        <RelativeLayout
+            android:id="@+id/rlStampCard"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/stamp"
-            android:adjustViewBounds="true"
+            android:layout_gravity="end"
             android:layout_marginTop="20dp"
-            android:layout_marginRight="20dp"
-            android:layout_gravity="right"
-            android:contentDescription="Cover"/>
+            android:layout_marginEnd="20dp">
 
-        <include android:id="@+id/layoutStamp" android:visibility="gone" layout="@layout/stamp_list"/>
+            <ImageView
+                android:id="@+id/button_stamp"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:contentDescription="Cover"
+                app:srcCompat="@drawable/open_stamp_card_btn" />
+
+
+            <TextView
+                android:id="@+id/tvStamp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="40dp"
+                android:text="@string/stamp"
+                android:textAlignment="viewStart"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvStampCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="55dp"
+                android:text="@string/stamp_count"
+                android:textAlignment="viewStart"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+        <include android:id="@+id/layoutStamp" layout="@layout/stamp_list" android:visibility="gone" />
+        <include android:id="@+id/layoutReward" layout="@layout/receive_reward" android:visibility="gone"/>
 
     </FrameLayout>
 
