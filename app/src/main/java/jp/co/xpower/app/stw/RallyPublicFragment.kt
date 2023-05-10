@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.amplifyframework.datastore.generated.model.StwCompany
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.xpower.app.stw.databinding.*
 
@@ -31,6 +32,8 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
     private lateinit var detailBinding: FragmentRallyListDialogItemBinding
     private lateinit var bottomBinding: BottomSheetParentBinding
     private lateinit var listener: RecyclerViewListener
+    private lateinit var companyList: ArrayList<StwCompany>
+    private var rallyList = mutableListOf<Rally>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,7 +56,7 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        populateStamp()
+        //populateStamp()
         binding.recyclerView.layoutManager = GridLayoutManager(context, 2)
         binding.recyclerView.adapter = ItemAdapter(rallyList, this)
 
@@ -84,7 +87,7 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
         fun bindRally(rally: Rally){
             binding.cover.setImageResource(rally.cover)
             binding.title.text = rally.title
-            binding.description.text = rally.description
+            //binding.description.text = rally.description      // 一覧では不要
             binding.cardView.setOnClickListener{
                 clickListener.onClick(rally)
             }
@@ -140,10 +143,34 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
          */
         // TODO: Rename and change types and number of parameters
         @JvmStatic
-        fun newInstance(param1: String) =
+        fun newInstance(param1: ArrayList<StwCompany>) =
             RallyPublicFragment().apply {
+
+
+                rallyList = mutableListOf<Rally>()
+
+                for(s in param1){
+                    println(s.id)
+                    var rally = Rally(
+                        R.drawable.rally,
+                        s.name,
+                        "報酬未定\n報酬未定\n報酬未定\n"
+                    )
+                    rallyList.add(rally)
+                }
+                /*
+                for (i in 1..9) {
+                    var rally = Rally(
+                        R.drawable.rally,
+                        "学園祭 - %d".format(i),
+                        "報酬未定\n報酬未定\n報酬未定\n"
+                    )
+                    rallyList.add(rally)
+                }
+                */
+
                 arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
+                    //putString(ARG_PARAM1, param1)
                 }
             }
     }

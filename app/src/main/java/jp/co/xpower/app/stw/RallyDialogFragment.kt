@@ -12,9 +12,12 @@ import android.view.ViewGroup
 import android.view.Window
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import jp.co.xpower.app.stw.databinding.FragmentRallyDialogBinding
+import jp.co.xpower.app.stw.model.CommonData
+import jp.co.xpower.app.stw.model.CommonDataViewModel
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -40,7 +43,9 @@ class RallyDialogFragment : DialogFragment() {
             param2 = it.getString(ARG_PARAM2)
         }
     }
-
+    private val commonDataViewModel by lazy {
+        ViewModelProvider(requireActivity())[CommonDataViewModel::class.java]
+    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -49,6 +54,11 @@ class RallyDialogFragment : DialogFragment() {
         binding = FragmentRallyDialogBinding.inflate(layoutInflater)
 
         binding.buttonJoin.setOnClickListener {
+
+
+            //Log.d(TAG, commonDataViewModel.commonData.message)
+            //commonDataViewModel.commonData.message = "ok."
+
 
             val textColor = resources.getColor(R.color.white, requireContext().theme)
             val backgroundColor = resources.getColor(R.color.list_background_color, requireContext().theme)
