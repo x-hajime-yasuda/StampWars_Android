@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_coordinator_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -14,13 +13,24 @@
         android:layout_height="match_parent">
 
         <fragment
-            class="com.google.android.gms.maps.SupportMapFragment"
             android:id="@+id/map_fragment"
+            class="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:layout="@layout/maps_fragment" />
 
-        <include android:id="@+id/layout_selected" android:visibility="visible" layout="@layout/rally_selected"/>
+        <LinearLayout
+            android:id="@+id/bgLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#80404040"
+            android:orientation="horizontal"
+            android:visibility="gone"></LinearLayout>
+
+        <include
+            android:id="@+id/layout_selected"
+            layout="@layout/rally_selected"
+            android:visibility="visible" />
 
         <RelativeLayout
             android:id="@+id/rlStampCard"
@@ -31,8 +41,8 @@
             android:layout_marginEnd="20dp">
 
             <ImageView
-                android:id="@+id/button_stamp"
-                android:layout_width="80dp"
+                android:id="@+id/btStampList"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:adjustViewBounds="true"
                 android:contentDescription="Cover"
@@ -44,7 +54,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
-                android:layout_marginTop="40dp"
+                android:layout_marginTop="55dp"
                 android:text="@string/stamp"
                 android:textAlignment="viewStart"
                 android:textColor="@color/white"
@@ -55,15 +65,27 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerHorizontal="true"
-                android:layout_marginTop="55dp"
+                android:layout_marginTop="70dp"
                 android:text="@string/stamp_count"
                 android:textAlignment="viewStart"
                 android:textColor="@color/white"
                 android:textStyle="bold" />
         </RelativeLayout>
 
-        <include android:id="@+id/layoutStamp" layout="@layout/stamp_list" android:visibility="gone" />
-        <include android:id="@+id/layoutReward" layout="@layout/receive_reward" android:visibility="gone"/>
+        <include
+            android:id="@+id/layoutStamp"
+            layout="@layout/stamp_list"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutReward"
+            layout="@layout/receive_reward"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutReceived"
+            layout="@layout/after_receive"
+            android:visibility="gone" />
 
     </FrameLayout>
 
@@ -73,8 +95,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="@color/white"
-        app:itemTextColor="@color/color_selector"
         app:itemIconTint="@color/color_selector"
+        app:itemTextColor="@color/color_selector"
         app:layout_constraintBottom_toBottomOf="parent"
         app:menu="@menu/main_menu" />
 

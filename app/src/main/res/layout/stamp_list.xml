@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/list_background"
     android:layout_marginLeft="10dp"
+    android:layout_marginTop="130dp"
     android:layout_marginRight="10dp"
-    android:layout_marginTop="110dp"
-    android:layout_marginBottom="130dp"
-    android:topRightRadius="5dp"
+    android:layout_marginBottom="110dp"
+    android:background="@drawable/list_background"
+    android:orientation="vertical"
     android:topLeftRadius="5dp"
-    android:orientation="vertical">
+    android:topRightRadius="5dp">
 
     <FrameLayout
         android:id="@+id/list"
@@ -25,57 +24,57 @@
             android:id="@+id/textView4"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginLeft="100dp"
             android:layout_gravity="center_vertical"
-            android:textSize="18dp"
+            android:layout_marginLeft="100dp"
+            android:text="@string/stamp_get"
             android:textColor="#FFFFFF"
-            android:text="@string/stamp_get" />
+            android:textSize="18dp" />
+
         <TextView
             android:id="@+id/text_get"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="80dp"
             android:layout_gravity="right"
-            android:textSize="28dp"
-            android:textColor="#FFDDDD"
-            android:textStyle="bold"
+            android:layout_marginRight="80dp"
             android:shadowColor="#7777E8"
             android:shadowDx="3.0"
             android:shadowDy="3.0"
             android:shadowRadius="1.5"
-            android:text="@string/stamp_count" />
+            android:text="@string/stamp_count"
+            android:textColor="#FFDDDD"
+            android:textSize="28dp"
+            android:textStyle="bold" />
 
 
         <Button
-            android:visibility="invisible"
             android:id="@+id/button_close"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:background="@drawable/close"
             android:layout_gravity="right|center_vertical"
-            />
+            android:background="@drawable/close"
+            android:visibility="invisible" />
     </FrameLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout_editor_absoluteX="1dp"
         android:layout_weight="1"
+        tools:layout_editor_absoluteX="1dp"
         tools:layout_editor_absoluteY="1dp">
 
     </androidx.recyclerview.widget.RecyclerView>
 
     <Button
         android:id="@+id/button_reward"
-        android:layout_margin="10dp"
-        android:layout_gravity="center_horizontal"
+        style="@style/Stw_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        style="@style/Stw_button"
-        android:textSize="18dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="10dp"
         android:text="@string/stamp_get_reward"
-        android:visibility="visible"/>
+        android:textSize="18dp"
+        android:visibility="visible" />
     <!--
     android:background="@drawable/button_ripple"
     -->

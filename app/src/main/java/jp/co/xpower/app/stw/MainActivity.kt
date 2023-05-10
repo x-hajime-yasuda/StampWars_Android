@@ -9,6 +9,7 @@ import android.text.Spanned
 import android.text.style.AbsoluteSizeSpan
 import android.util.Log
 import android.view.View
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -131,7 +132,9 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         }
 
         // スタンプ表示切り替え
-        binding.buttonStamp.setOnClickListener {
+        binding.btStampList.setOnClickListener(onButtonClick())
+        /*
+        binding.btStampList.setOnClickListener {
             val layout = binding.layoutStamp
             if(layout.layout.visibility == View.VISIBLE){
                 layout.layout.visibility = View.GONE
@@ -140,6 +143,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                 layout.layout.visibility = View.VISIBLE
             }
         }
+         */
 
         // テストデータ設定
         populateStamp()
@@ -150,16 +154,27 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         }
 
         // 報酬獲得画面の表示
-        binding.layoutStamp.buttonReward.setOnClickListener {
-            binding.layoutReward.layout.visibility = View.VISIBLE
-            binding.layoutStamp.layout.visibility = View.GONE
+        binding.layoutStamp.buttonReward.setOnClickListener(onButtonClick())
+
+        // 報酬獲得画面・受取完了画面を閉じてスタンプカード画面を表示
+        binding.layoutReward.btBackStampList.setOnClickListener(onButtonClick())
+        binding.layoutReceived.btBackStampList.setOnClickListener(onButtonClick())
+
+        // bgLayoutの設定
+        //binding.bgLayout.bringToFront()
+        binding.bgLayout.setOnClickListener(null)
+
+        // スタンプカード表示ボタンを最前面に配置
+        binding.rlStampCard.bringToFront()
+
+        // 報酬受け取り完了画面の表示
+        binding.layoutReward.swReceiveReward.setOnCheckedChangeListener { buttonView, isChecked ->
+            if(isChecked){
+                binding.layoutReward.layout.visibility = View.GONE
+                binding.layoutReceived.layout.visibility = View.VISIBLE
+            }
         }
 
-        // 報酬獲得画面を閉じてスタンプカード画面を表示
-        binding.layoutReward.btBackStampList.setOnClickListener {
-            binding.layoutReward.layout.visibility = View.GONE
-            binding.layoutStamp.layout.visibility = View.VISIBLE
-        }
 
         // 獲得数だけ強調表示
         binding.layoutStamp.textGet.changeSizeOfText("3", 38)
@@ -184,5 +199,44 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                 else -> false
             }
         }
+    }
+
+    private inner class onButtonClick : View.OnClickListener{
+        val rewardLayout = binding.layoutReward.layout
+        val stampLayout = binding.layoutStamp.layout
+        val receivedLayout = binding.layoutReceived.layout
+        val bgLayout = binding.bgLayout
+        val btStampList = binding.btStampList
+        override fun onClick(v: View) {
+            when(v.id){
+                // スタンプカード表示切り替え
+                R.id.btStampList -> {
+                    if(stampLayout.visibility == View.VISIBLE){
+                        stampLayout.visibility = View.GONE
+                        bgLayout.visibility = View.GONE
+                    }
+                    else {
+                        stampLayout.visibility = View.VISIBLE
+                        bgLayout.visibility = View.VISIBLE
+                    }
+                }
+
+                // スタンプカードに戻る
+                R.id.btBackStampList -> {
+                    rewardLayout.visibility = View.GONE
+                    receivedLayout.visibility = View.GONE
+                    stampLayout.visibility = View.VISIBLE
+                    btStampList.isClickable = true
+                }
+
+                // 報酬獲得画面を表示
+                R.id.button_reward -> {
+                    rewardLayout.visibility = View.VISIBLE
+                    stampLayout.visibility = View.GONE
+                    btStampList.isClickable = false
+                }
+            }
+        }
+
     }
 }
