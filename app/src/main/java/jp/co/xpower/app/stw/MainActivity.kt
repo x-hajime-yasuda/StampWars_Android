@@ -8,12 +8,15 @@ import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.AbsoluteSizeSpan
 import android.util.Log
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.GridLayoutManager
@@ -27,6 +30,8 @@ import com.google.android.material.snackbar.Snackbar
 import jp.co.xpower.app.stw.databinding.ActivityMainBinding
 import jp.co.xpower.app.stw.databinding.RallyCellBinding
 import jp.co.xpower.app.stw.databinding.TermsOfServiceBinding
+import kotlinx.coroutines.Runnable
+import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
     private lateinit var binding: ActivityMainBinding
@@ -34,6 +39,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
     private lateinit var googleMap: GoogleMap
     private lateinit var mapFragment: SupportMapFragment
     private lateinit var cameraLauncher: ActivityResultLauncher<Intent>
+    private lateinit var mGestureDetector : GestureDetector
 
     companion object {
         const val  EXTRA_MESSAGE ="jp.co.xpower.app.stw.camera_activity.MESSAGE"
@@ -133,17 +139,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 
         // スタンプ表示切り替え
         binding.btStampList.setOnClickListener(onButtonClick())
-        /*
-        binding.btStampList.setOnClickListener {
-            val layout = binding.layoutStamp
-            if(layout.layout.visibility == View.VISIBLE){
-                layout.layout.visibility = View.GONE
-            }
-            else {
-                layout.layout.visibility = View.VISIBLE
-            }
-        }
-         */
 
         // テストデータ設定
         populateStamp()
@@ -153,6 +148,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             adapter = StampAdapter(stampList)
         }
 
+
         // 報酬獲得画面の表示
         binding.layoutStamp.buttonReward.setOnClickListener(onButtonClick())
 
@@ -161,7 +157,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         binding.layoutReceived.btBackStampList.setOnClickListener(onButtonClick())
 
         // bgLayoutの設定
-        //binding.bgLayout.bringToFront()
         binding.bgLayout.setOnClickListener(null)
 
         // スタンプカード表示ボタンを最前面に配置
@@ -172,8 +167,16 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             if(isChecked){
                 binding.layoutReward.layout.visibility = View.GONE
                 binding.layoutReceived.layout.visibility = View.VISIBLE
+                binding.layoutReward.swReceiveReward.isClickable = false
             }
         }
+        mGestureDetector = GestureDetector(this@MainActivity, mGestureListener())
+        binding.layoutReward.swReceiveReward.setOnTouchListener(swTouchListener())
+
+        // スタンプカード・報酬受取画面・受取完了画面の閉じるボタンの設定
+        binding.layoutStamp.buttonClose.setOnClickListener(onButtonClick())
+        binding.layoutReward.buttonClose.setOnClickListener(onButtonClick())
+        binding.layoutReceived.buttonClose.setOnClickListener(onButtonClick())
 
 
         // 獲得数だけ強調表示
@@ -198,6 +201,28 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                 }
                 else -> false
             }
+        }
+    }
+
+    private inner class swTouchListener : View.OnTouchListener {
+        override fun onTouch(v: View, event: MotionEvent): Boolean {
+            mGestureDetector.onTouchEvent(event)
+            return false
+        }
+
+    }
+
+    private inner class mGestureListener : GestureDetector.SimpleOnGestureListener() {
+        override fun onSingleTapUp(e: MotionEvent): Boolean {
+            val backgroundReceiver = Runnable {
+                Thread.sleep(1000)
+                binding.layoutReward.swReceiveReward.isClickable = true
+            }
+            val executeService = Executors.newSingleThreadExecutor()
+
+            binding.layoutReward.swReceiveReward.isClickable = false
+            executeService.submit(backgroundReceiver)
+            return true
         }
     }
 
@@ -231,12 +256,28 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 
                 // 報酬獲得画面を表示
                 R.id.button_reward -> {
-                    rewardLayout.visibility = View.VISIBLE
-                    stampLayout.visibility = View.GONE
                     btStampList.isClickable = false
+                    stampLayout.visibility = View.GONE
+                    if(!binding.layoutReward.swReceiveReward.isChecked){
+                        // 報酬未受取の場合は受取画面を表示
+                        rewardLayout.visibility = View.VISIBLE
+                    }
+                    else {
+                        // 報酬受取済の場合は受取完了画面を表示
+                        receivedLayout.visibility = View.VISIBLE
+                    }
+
+                }
+
+                //閉じるボタン
+                R.id.button_close -> {
+                    rewardLayout.visibility = View.GONE
+                    receivedLayout.visibility = View.GONE
+                    stampLayout.visibility = View.GONE
+                    bgLayout.visibility = View.GONE
+                    btStampList.isClickable = true
                 }
             }
         }
-
     }
 }

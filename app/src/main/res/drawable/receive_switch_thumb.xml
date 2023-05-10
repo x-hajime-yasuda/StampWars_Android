@@ -6,7 +6,7 @@
         android:top="8dp"
         android:bottom="8dp">
         <shape android:shape="rectangle" android:tint="@color/material_dynamic_primary20">
-            <size android:width="50dp" android:height="40dp"></size>
+            <size android:width="40dp" android:height="30dp"></size>
             <corners android:radius="10dp" />
         </shape>
     </item>

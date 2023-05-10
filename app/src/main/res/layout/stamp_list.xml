@@ -51,8 +51,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_gravity="right|center_vertical"
-            android:background="@drawable/close"
-            android:visibility="invisible" />
+            android:background="@drawable/close" />
     </FrameLayout>
 
     <androidx.recyclerview.widget.RecyclerView

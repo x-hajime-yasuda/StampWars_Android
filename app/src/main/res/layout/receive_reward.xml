@@ -14,10 +14,17 @@
     android:topLeftRadius="5dp"
     android:topRightRadius="5dp">
 
+    <Button
+        android:id="@+id/button_close"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="right|center_vertical"
+        android:background="@drawable/close" />
+
     <ImageView
         android:id="@+id/ivCheckMarkSeal"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:layout_width="160dp"
+        android:layout_height="160dp"
         android:layout_gravity="center"
         android:layout_marginTop="20dp"
         app:srcCompat="@drawable/checkmark_seal"
@@ -65,7 +72,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="20sp"
-        android:switchMinWidth="320dp"
+        android:switchMinWidth="300dp"
         android:thumb="@drawable/receive_switch_thumb"
         android:track="@drawable/receive_switch_track" />
 
@@ -74,7 +81,7 @@
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="50dp"
         android:background="@drawable/button_ripple"
         android:text="@string/back_to_stamp_card"
         android:textColor="@color/white"

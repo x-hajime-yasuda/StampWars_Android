@@ -4,8 +4,8 @@
         <shape
             android:shape="rectangle">
             <size
-                android:width="320dp"
-                android:height="60dp" />
+                android:width="300dp"
+                android:height="50dp" />
             <solid android:color="@color/material_dynamic_neutral70"></solid>
             <corners
                 android:radius="10dp" />
@@ -16,9 +16,9 @@
         <shape
             android:shape="rectangle">
             <size
-                android:width="320dp"
-                android:height="60dp" />
-            <solid android:color="@color/material_dynamic_primary70"></solid>
+                android:width="300dp"
+                android:height="50dp" />
+            <solid android:color="@color/design_default_color_secondary"></solid>
             <corners
                 android:radius="10dp" />
         </shape>

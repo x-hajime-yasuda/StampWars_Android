@@ -9,8 +9,8 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="list_background_color">#555555FF</color>
-    <color name="button_color">#5555ff</color>
-    <color name="button_highlight_color">#aaaaff</color>
+    <color name="button_color">#ffff8800</color>
+    <color name="button_highlight_color">#ffffbb33</color>
     <color name="transparent_status_bar">#225555FF</color>
     <!--
     <color name="list_background_color">#55FF5555</color>
