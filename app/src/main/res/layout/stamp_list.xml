@@ -27,7 +27,7 @@
             android:layout_gravity="center_vertical"
             android:layout_marginLeft="100dp"
             android:text="@string/stamp_get"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/black"
             android:textSize="18dp" />
 
         <TextView

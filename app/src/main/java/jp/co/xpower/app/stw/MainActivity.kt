@@ -138,7 +138,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         }
 
         // スタンプ表示切り替え
-        binding.btStampList.setOnClickListener(onButtonClick())
+        binding.btStampList.setOnClickListener(OnButtonClick())
 
         // テストデータ設定
         populateStamp()
@@ -150,11 +150,11 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 
 
         // 報酬獲得画面の表示
-        binding.layoutStamp.buttonReward.setOnClickListener(onButtonClick())
+        binding.layoutStamp.buttonReward.setOnClickListener(OnButtonClick())
 
         // 報酬獲得画面・受取完了画面を閉じてスタンプカード画面を表示
-        binding.layoutReward.btBackStampList.setOnClickListener(onButtonClick())
-        binding.layoutReceived.btBackStampList.setOnClickListener(onButtonClick())
+        binding.layoutReward.btBackStampList.setOnClickListener(OnButtonClick())
+        binding.layoutReceived.btBackStampList.setOnClickListener(OnButtonClick())
 
         // bgLayoutの設定
         binding.bgLayout.setOnClickListener(null)
@@ -170,13 +170,13 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                 binding.layoutReward.swReceiveReward.isClickable = false
             }
         }
-        mGestureDetector = GestureDetector(this@MainActivity, mGestureListener())
-        binding.layoutReward.swReceiveReward.setOnTouchListener(swTouchListener())
+        mGestureDetector = GestureDetector(this@MainActivity, MGestureListener())
+        binding.layoutReward.swReceiveReward.setOnTouchListener(SwTouchListener())
 
         // スタンプカード・報酬受取画面・受取完了画面の閉じるボタンの設定
-        binding.layoutStamp.buttonClose.setOnClickListener(onButtonClick())
-        binding.layoutReward.buttonClose.setOnClickListener(onButtonClick())
-        binding.layoutReceived.buttonClose.setOnClickListener(onButtonClick())
+        binding.layoutStamp.buttonClose.setOnClickListener(OnButtonClick())
+        binding.layoutReward.buttonClose.setOnClickListener(OnButtonClick())
+        binding.layoutReceived.buttonClose.setOnClickListener(OnButtonClick())
 
 
         // 獲得数だけ強調表示
@@ -204,7 +204,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         }
     }
 
-    private inner class swTouchListener : View.OnTouchListener {
+    private inner class SwTouchListener : View.OnTouchListener {
         override fun onTouch(v: View, event: MotionEvent): Boolean {
             mGestureDetector.onTouchEvent(event)
             return false
@@ -212,7 +212,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 
     }
 
-    private inner class mGestureListener : GestureDetector.SimpleOnGestureListener() {
+    private inner class MGestureListener : GestureDetector.SimpleOnGestureListener() {
         override fun onSingleTapUp(e: MotionEvent): Boolean {
             val backgroundReceiver = Runnable {
                 Thread.sleep(1000)
@@ -226,7 +226,8 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         }
     }
 
-    private inner class onButtonClick : View.OnClickListener{
+
+    private inner class OnButtonClick : View.OnClickListener{
         val rewardLayout = binding.layoutReward.layout
         val stampLayout = binding.layoutStamp.layout
         val receivedLayout = binding.layoutReceived.layout
@@ -280,4 +281,5 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             }
         }
     }
+
 }
