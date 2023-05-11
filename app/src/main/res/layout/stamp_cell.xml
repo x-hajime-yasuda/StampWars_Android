@@ -1,42 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:orientation="vertical">
 
-<androidx.cardview.widget.CardView
-    android:id="@+id/cardView"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/black"
-    app:cardCornerRadius="2dp"
-    android:layout_margin="1dp"
-    android:clickable="true"
-    app:cardElevation="2dp">
-
-    <LinearLayout
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_margin="1dp"
+        android:background="@color/button_highlight_color"
+        android:clickable="true"
+        app:cardElevation="2dp">
 
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-                <ImageView
-                    android:id="@+id/cover"
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <FrameLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/sumi1"
-                    android:adjustViewBounds="true"
-                    android:layout_gravity="center"
-                    android:alpha="0.5"
-                    android:contentDescription="Cover"/>
-                <!--
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/cover"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_margin="16dp"
+                        android:adjustViewBounds="true"
+                        android:alpha="0.5"
+                        android:contentDescription="Cover"
+                        android:src="@drawable/sumi1"
+                        app:tint="@android:color/holo_red_light" />
+                    <!--
                 <TextView
                     android:id="@+id/title"
                     android:layout_width="match_parent"
@@ -46,29 +48,22 @@
                     android:textSize="28dp"
                     android:text="@string/rally_title_01"/>
                 -->
-            </FrameLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            >
+                </FrameLayout>
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
-                android:ellipsize="marquee"
-                android:marqueeRepeatLimit="marquee_forever"
+                android:layout_centerInParent="true"
                 android:gravity="center"
-                android:textSize="12dp"
-                android:text="@string/rally_title_01"/>
-        </LinearLayout>
+                android:text="@string/rally_title_01"
+                android:textColor="@color/primary_20"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
 
 
-    </LinearLayout>
-</androidx.cardview.widget.CardView>
+    </androidx.cardview.widget.CardView>
 
 </LinearLayout>

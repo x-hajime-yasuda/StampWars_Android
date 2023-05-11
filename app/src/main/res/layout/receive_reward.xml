@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/layout"
     android:layout_width="match_parent"
-    android:layout_height="500dp"
+    android:layout_height="wrap_content"
     android:layout_marginLeft="30dp"
     android:layout_marginTop="150dp"
     android:layout_marginRight="30dp"
@@ -23,8 +23,8 @@
 
     <ImageView
         android:id="@+id/ivCheckMarkSeal"
-        android:layout_width="160dp"
-        android:layout_height="160dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:layout_gravity="center"
         android:layout_marginTop="20dp"
         app:srcCompat="@drawable/checkmark_seal"
@@ -37,8 +37,8 @@
         android:layout_marginTop="30dp"
         android:gravity="center"
         android:text="@string/receive_msg_please"
-        android:textColor="@color/material_dynamic_primary20"
-        android:textSize="16sp"
+        android:textColor="@color/primary_20"
+        android:textSize="12sp"
         android:textStyle="bold" />
 
     <LinearLayout
@@ -50,8 +50,8 @@
 
         <ImageView
             android:id="@+id/imageView1"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="16sp"
+            android:layout_height="16dp"
             android:layout_marginEnd="8dp"
             app:srcCompat="@android:drawable/ic_dialog_alert"
             app:tint="@android:color/holo_red_light" />
@@ -62,7 +62,7 @@
             android:layout_height="wrap_content"
             android:text="@string/receive_mas_warning"
             android:textColor="@android:color/holo_red_light"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textStyle="bold" />
     </LinearLayout>
 
@@ -72,16 +72,17 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="20sp"
-        android:switchMinWidth="300dp"
+        android:switchMinWidth="200dp"
         android:thumb="@drawable/receive_switch_thumb"
         android:track="@drawable/receive_switch_track" />
 
     <Button
         android:id="@+id/btBackStampList"
-        android:layout_width="300dp"
+        android:layout_width="240dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
         android:background="@drawable/button_ripple"
         android:text="@string/back_to_stamp_card"
         android:textColor="@color/white"
