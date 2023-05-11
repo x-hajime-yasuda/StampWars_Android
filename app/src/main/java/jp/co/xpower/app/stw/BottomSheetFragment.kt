@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import androidx.viewpager2.widget.ViewPager2
+import com.amplifyframework.datastore.generated.model.StwCompany
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.tabs.TabLayoutMediator
@@ -30,6 +31,8 @@ class BottomSheetFragment : BottomSheetDialogFragment(), RecyclerViewListener {
     private val binding get() = _binding!!
 
     private var behavior: BottomSheetBehavior<View>? = null
+
+    private lateinit var companyList: ArrayList<StwCompany>
 
     override fun onRecyclerViewScrolled() {
         // RecyclerViewがスクロールされたときに呼ばれる処理
@@ -66,7 +69,7 @@ class BottomSheetFragment : BottomSheetDialogFragment(), RecyclerViewListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
         // paramで詳細などデータを連携する
-        val adapter = TabPagerAdapter("param1", childFragmentManager, lifecycle)
+        val adapter = TabPagerAdapter(companyList, childFragmentManager, lifecycle)
 
         binding.layout.viewPager.adapter = adapter
 
@@ -115,10 +118,11 @@ class BottomSheetFragment : BottomSheetDialogFragment(), RecyclerViewListener {
 
     companion object {
         // MainActivityから渡されるパラメータ
-        fun newInstance(itemCount: Int): BottomSheetFragment =
+        fun newInstance(itemCount: ArrayList<StwCompany>): BottomSheetFragment =
             BottomSheetFragment().apply {
+                companyList = itemCount
                 arguments = Bundle().apply {
-                    putInt(ARG_ITEM_COUNT, itemCount)
+                    //putInt(ARG_ITEM_COUNT, itemCount)
                 }
             }
     }

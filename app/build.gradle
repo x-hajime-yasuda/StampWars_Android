@@ -65,4 +65,10 @@ dependencies {
     implementation "androidx.camera:camera-video:${camerax_version}"
     implementation "androidx.camera:camera-view:${camerax_version}"
     implementation "androidx.camera:camera-extensions:${camerax_version}"
+
+    implementation 'com.amplifyframework:core:2.6.0'
+    implementation 'com.amplifyframework:aws-api:2.6.0'
+    implementation 'com.amplifyframework:aws-auth-cognito:2.6.0'
+    implementation 'com.amplifyframework:aws-datastore:2.6.0'
+
 }
