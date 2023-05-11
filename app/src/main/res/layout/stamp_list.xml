@@ -6,9 +6,9 @@
     android:id="@+id/layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="10dp"
+    android:layout_marginLeft="30dp"
     android:layout_marginTop="130dp"
-    android:layout_marginRight="10dp"
+    android:layout_marginRight="30dp"
     android:layout_marginBottom="110dp"
     android:background="@drawable/list_background"
     android:orientation="vertical"
@@ -57,7 +57,10 @@
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_margin="8dp"
         android:layout_weight="1"
+        android:background="@color/primary_20"
+        android:padding="1dp"
         tools:layout_editor_absoluteX="1dp"
         tools:layout_editor_absoluteY="1dp">
 
@@ -66,12 +69,12 @@
     <Button
         android:id="@+id/button_reward"
         style="@style/Stw_button"
-        android:layout_width="match_parent"
+        android:layout_width="240dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_margin="10dp"
+        android:layout_marginBottom="16dp"
         android:text="@string/stamp_get_reward"
-        android:textSize="18dp"
+        android:textSize="14sp"
         android:visibility="visible" />
     <!--
     android:background="@drawable/button_ripple"
