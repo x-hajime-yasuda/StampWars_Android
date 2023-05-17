@@ -11,6 +11,6 @@
         android:top="5dp"
         android:height="50dp"
         android:width="50dp">
-        <bitmap android:src="@drawable/checkmark_seal" android:tint="@color/white"></bitmap>
+        <bitmap android:src="@drawable/stamp_icon" android:tint="@color/white"></bitmap>
     </item>
 </layer-list>

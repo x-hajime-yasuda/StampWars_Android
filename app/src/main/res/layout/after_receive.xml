@@ -27,7 +27,7 @@
         android:layout_height="100dp"
         android:layout_gravity="center"
         android:layout_marginTop="20dp"
-        app:srcCompat="@drawable/checkmark_seal"
+        app:srcCompat="@drawable/checkmark"
         app:tint="@android:color/holo_red_light" />
 
     <LinearLayout
@@ -42,7 +42,7 @@
             android:layout_width="16dp"
             android:layout_height="16dp"
             android:layout_marginEnd="8dp"
-            app:srcCompat="@drawable/check_circle"
+            app:srcCompat="@drawable/checkmark"
             app:tint="@color/primary_20" />
 
         <TextView

@@ -11,10 +11,19 @@
         </shape>
     </item>
     <item
-        android:width="20dp"
+        android:width="10dp"
         android:height="15dp"
-        android:gravity="center">
-        <bitmap android:src="@drawable/chevron_double_right"
+        android:gravity="center_vertical"
+        android:left="12dp">
+        <bitmap android:src="@drawable/chevron_right"
+            android:tint="@color/white"></bitmap>
+    </item>
+    <item
+        android:width="10dp"
+        android:height="15dp"
+        android:gravity="center_vertical"
+        android:left="18dp">
+        <bitmap android:src="@drawable/chevron_right"
             android:tint="@color/white"></bitmap>
     </item>
 </layer-list>

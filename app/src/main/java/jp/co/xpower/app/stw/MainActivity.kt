@@ -5,10 +5,7 @@ package jp.co.xpower.app.stw
 
 import android.content.Context
 import android.content.Intent
-import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
-import android.text.Layout
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.AbsoluteSizeSpan
@@ -23,18 +20,10 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
-import aws.smithy.kotlin.runtime.util.length
 import com.amplifyframework.auth.AuthSession
 import com.amplifyframework.auth.cognito.AWSCognitoAuthSession
-import com.amplifyframework.core.Action
 import com.amplifyframework.core.Amplify
-import com.amplifyframework.core.Consumer
-import com.amplifyframework.core.async.Cancelable
-import com.amplifyframework.core.model.query.ObserveQueryOptions
-import com.amplifyframework.core.model.query.predicate.QueryPredicate
-import com.amplifyframework.datastore.*
 import com.amplifyframework.datastore.generated.model.CheckPoint
 import com.amplifyframework.datastore.generated.model.Complete
 import com.amplifyframework.datastore.generated.model.StwCompany
@@ -50,8 +39,6 @@ import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.util.concurrent.CompletableFuture
-import android.view.ViewGroup.LayoutParams
-import android.widget.Button
 import androidx.lifecycle.ViewModelProvider
 import jp.co.xpower.app.stw.model.CommonData
 import jp.co.xpower.app.stw.model.CommonDataViewModel
@@ -514,6 +501,12 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                 else -> false
             }
         }
+
+        // ユーザ設定画面ボタン（仮）の表示
+//        binding.openUserSetting.setOnClickListener {
+//            val intent2UserSetting = Intent(this@MainActivity, UserSettingActivity::class.java)
+//            startActivity(intent2UserSetting)
+//        }
     }
 
     private inner class SwTouchListener : View.OnTouchListener {
@@ -794,4 +787,5 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             it.write(id.toByteArray())
         }
     }
+
 }

@@ -27,7 +27,7 @@
         android:layout_height="100dp"
         android:layout_gravity="center"
         android:layout_marginTop="20dp"
-        app:srcCompat="@drawable/checkmark_seal"
+        app:srcCompat="@drawable/checkmark"
         app:tint="@android:color/holo_red_light" />
 
     <TextView
