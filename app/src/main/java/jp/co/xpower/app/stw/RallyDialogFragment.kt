@@ -78,6 +78,10 @@ class RallyDialogFragment : DialogFragment() {
             snackBar.show()
         }
 
+        binding.buttonClose.setOnClickListener {
+            this.dismiss()
+        }
+
         return binding.root
     }
 

@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
+import android.text.Layout
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.AbsoluteSizeSpan
@@ -50,6 +51,7 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.util.concurrent.CompletableFuture
 import android.view.ViewGroup.LayoutParams
+import android.widget.Button
 import androidx.lifecycle.ViewModelProvider
 import jp.co.xpower.app.stw.model.CommonData
 import jp.co.xpower.app.stw.model.CommonDataViewModel
