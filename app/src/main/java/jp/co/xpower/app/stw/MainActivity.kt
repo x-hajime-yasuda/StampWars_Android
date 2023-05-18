@@ -23,7 +23,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-<<<<<<< HEAD
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
@@ -42,12 +41,6 @@ import com.amplifyframework.core.model.query.ObserveQueryOptions
 import com.amplifyframework.core.model.query.predicate.QueryPredicate
 import com.amplifyframework.core.model.temporal.Temporal
 import com.amplifyframework.datastore.*
-=======
-import androidx.recyclerview.widget.GridLayoutManager
-import com.amplifyframework.auth.AuthSession
-import com.amplifyframework.auth.cognito.AWSCognitoAuthSession
-import com.amplifyframework.core.Amplify
->>>>>>> 8860561b7ddb8ccf71ec6858e9ff88b8daa358c9
 import com.amplifyframework.datastore.generated.model.CheckPoint
 import com.amplifyframework.datastore.generated.model.Complete
 import com.amplifyframework.datastore.generated.model.StwCompany
@@ -65,12 +58,6 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.util.*
 import java.util.concurrent.CompletableFuture
-<<<<<<< HEAD
-=======
-import androidx.lifecycle.ViewModelProvider
-import jp.co.xpower.app.stw.model.CommonData
-import jp.co.xpower.app.stw.model.CommonDataViewModel
->>>>>>> 8860561b7ddb8ccf71ec6858e9ff88b8daa358c9
 import java.util.concurrent.Executors
 
 
