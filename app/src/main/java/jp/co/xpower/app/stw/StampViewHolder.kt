@@ -8,7 +8,7 @@ class StampViewHolder(
     //, private val clickListener: StampClickListener
 ) : RecyclerView.ViewHolder(stampCellBinding.root) {
     fun bindRally(stamp: Stamp){
-        stampCellBinding.cover.setImageResource(R.drawable.checkmark_seal_fill)
+        stampCellBinding.cover.setImageResource(R.drawable.stamp_icon)
         //stampCellBinding.title.isSelected = true
         stampCellBinding.title.text = stamp.title
         //stampCellBinding.cardView.setOnClickListener{

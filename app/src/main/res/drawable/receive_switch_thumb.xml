@@ -1,20 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:start="8dp"
-        android:end="8dp"
-        android:top="8dp"
-        android:bottom="8dp">
+        android:start="4dp"
+        android:end="4dp"
+        android:top="4dp"
+        android:bottom="4dp">
         <shape android:shape="rectangle" android:tint="@color/primary_20">
-            <size android:width="40dp" android:height="30dp"></size>
-            <corners android:radius="10dp" />
+            <size android:width="30dp" android:height="25dp"></size>
+            <corners android:radius="5dp" />
         </shape>
     </item>
     <item
-        android:width="30dp"
-        android:height="20dp"
-        android:gravity="center">
-        <bitmap android:src="@drawable/chevron_double_right"
+        android:width="10dp"
+        android:height="15dp"
+        android:gravity="center_vertical"
+        android:left="12dp">
+        <bitmap android:src="@drawable/chevron_right"
+            android:tint="@color/white"></bitmap>
+    </item>
+    <item
+        android:width="10dp"
+        android:height="15dp"
+        android:gravity="center_vertical"
+        android:left="18dp">
+        <bitmap android:src="@drawable/chevron_right"
             android:tint="@color/white"></bitmap>
     </item>
 </layer-list>
