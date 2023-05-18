@@ -29,6 +29,9 @@
             android:label="@string/title_activity_terms"
             android:theme="@style/SplashTheme.NoActionBar" />
         <activity
+            android:name=".UserSettingActivity"
+            android:exported="false" />
+        <activity
             android:name=".CameraActivity"
             android:exported="false" />
         <activity

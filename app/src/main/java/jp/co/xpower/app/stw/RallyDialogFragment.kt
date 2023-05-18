@@ -135,6 +135,10 @@ class RallyDialogFragment : DialogFragment() {
             */
         }
 
+        binding.buttonClose.setOnClickListener {
+            this.dismiss()
+        }
+
         return binding.root
     }
 
