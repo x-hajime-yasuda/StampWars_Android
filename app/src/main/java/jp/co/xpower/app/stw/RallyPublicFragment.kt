@@ -1,15 +1,19 @@
 package jp.co.xpower.app.stw
 
+import android.content.ContentValues
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.amplifyframework.datastore.generated.model.StwCompany
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.xpower.app.stw.databinding.*
+import jp.co.xpower.app.stw.model.CommonDataViewModel
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -55,8 +59,31 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
         return binding.root
     }
 
+    private val commonDataViewModel by lazy {
+        ViewModelProvider(requireActivity())[CommonDataViewModel::class.java]
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         //populateStamp()
+
+        Log.i(ContentValues.TAG, commonDataViewModel.commonDataList.count().toString())
+        for(list in commonDataViewModel.commonDataList){
+            var rally = Rally(
+                list.cnId,
+                list.srId,
+                list.place,
+                list.title,
+                list.detail,
+                list.rewardTitle,
+                list.rewardDetail,
+                R.drawable.rally,
+                joined = list.joinFlg
+            )
+            rallyList.add(rally)
+        }
+
+
+
         binding.recyclerView.layoutManager = GridLayoutManager(context, 2)
         binding.recyclerView.adapter = ItemAdapter(rallyList, this)
 
@@ -70,21 +97,13 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
 
     }
 
-    private fun populateStamp() {
-        for (i in 1..9) {
-            var rally = Rally(
-                R.drawable.rally,
-                "学園祭 - %d".format(i),
-                "報酬未定\n報酬未定\n報酬未定\n"
-            )
-            rallyList.add(rally)
-        }
-    }
-
     private inner class ViewHolder internal constructor(private val binding: FragmentRallyListDialogItemBinding, private val clickListener: RallyClickListener) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bindRally(rally: Rally){
+            if(rally.joined){
+                binding.joined.visibility = View.VISIBLE
+            }
             binding.cover.setImageResource(rally.cover)
             binding.title.text = rally.title
             //binding.description.text = rally.description      // 一覧では不要
@@ -129,7 +148,8 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
     override fun onClick(rally: Rally) {
 
         // ラリー詳細表示
-        val dialog = RallyDialogFragment()
+        val dialog = RallyDialogFragment.newInstance(rally.cnId, rally.srId)
+        //val dialog = RallyDialogFragment()
         dialog.show(parentFragmentManager, "custom_dialog")
     }
 
@@ -147,6 +167,7 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
             RallyPublicFragment().apply {
 
 
+                /*
                 rallyList = mutableListOf<Rally>()
 
                 for(s in param1){
@@ -158,6 +179,7 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
                     )
                     rallyList.add(rally)
                 }
+                */
                 /*
                 for (i in 1..9) {
                     var rally = Rally(

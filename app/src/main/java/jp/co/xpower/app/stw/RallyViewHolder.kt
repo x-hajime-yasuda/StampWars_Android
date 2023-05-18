@@ -10,7 +10,7 @@ class RallyViewHolder(
     fun bindRally(rally: Rally){
         cardCellBinding.cover.setImageResource(rally.cover)
         cardCellBinding.title.text = rally.title
-        cardCellBinding.description.text = rally.description
+        cardCellBinding.description.text = rally.detail
         cardCellBinding.cardView.setOnClickListener{
             clickListener.onClick(rally)
         }

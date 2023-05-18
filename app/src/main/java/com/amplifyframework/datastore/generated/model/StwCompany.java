@@ -36,7 +36,6 @@ public final class StwCompany implements Model {
   public String resolveIdentifier() {
     return id;
   }
-  
   public String getId() {
       return id;
   }
@@ -56,7 +55,6 @@ public final class StwCompany implements Model {
   public Temporal.DateTime getUpdatedAt() {
       return updatedAt;
   }
-  
   private StwCompany(String id, String name, List<Rally> rallyList) {
     this.id = id;
     this.name = name;

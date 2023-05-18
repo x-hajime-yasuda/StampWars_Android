@@ -10,23 +10,35 @@ class CommonDataViewModel : ViewModel() {
 
     lateinit var companyList:ArrayList<StwCompany>
     lateinit var userList:ArrayList<StwUser>
+    //lateinit var commonDataList:ArrayList<CommonData>
 
     fun countCommonDataById(cnId: String, srId: String): Int {
         return commonDataList.count { it.cnId == cnId && it.srId == srId }
         //return commonDataList.find { it.cnId == cnId && it.srId == srId }
     }
+    fun dataCommonDataById(cnId: String, srId: String): CommonData? {
+        return commonDataList.find { it.cnId == cnId && it.srId == srId }
+    }
 
-    val commonData = CommonData()
-    val commonDataList = ArrayList<CommonData>()
+    //val commonData = CommonData()
+    var commonDataList = ArrayList<CommonData>()
+
+    var identityId = ""
 }
 
 
 data class CommonData(
     var cnId: String = "",
     var srId: String = "",
-    var srTitle: String = "",
-    var srState: Int = 0,
-    var srCp: ArrayList<CheckPoint> = ArrayList<CheckPoint>(),
+    var place: String? = "",
+    var title: String? = "",
+    var detail: String? = "",
+    var rewardTitle: String? = "",
+    var rewardDetail: String? = "",
+    var startAt:Long? = 0,
+    var endAt:Long? = 0,
+    var state: Int = 0,
+    var cp: ArrayList<CheckPoint> = ArrayList<CheckPoint>(),
     var joinFlg: Boolean = false,
     var completeFlg: Boolean = false
 )

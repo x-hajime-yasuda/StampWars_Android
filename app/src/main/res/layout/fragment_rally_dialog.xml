@@ -59,6 +59,8 @@
                             android:layout_gravity="center"
                             android:contentDescription="Cover"/>
                         <ImageView
+                            android:id="@+id/img_join"
+                            android:visibility="invisible"
                             android:layout_width="90dp"
                             android:layout_height="62dp"
                             android:layout_marginRight="5dp"
@@ -73,7 +75,7 @@
                         android:layout_margin="5dp"
                         android:textSize="18dp"
                         android:textStyle="bold"
-                        android:text="場所　　▷ 北海道" />
+                        android:text="場所　　▷ " />
                     <TextView
                         android:id="@+id/text_date"
                         android:layout_width="wrap_content"
@@ -82,7 +84,7 @@
                         android:layout_margin="5dp"
                         android:textSize="18dp"
                         android:textStyle="bold"
-                        android:text="開催日　▷ 2023/5/5 〜 2023/5/5" />
+                        android:text="開催日　▷ " />
                     <TextView
                         android:id="@+id/text_description"
                         android:layout_width="wrap_content"

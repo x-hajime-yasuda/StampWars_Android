@@ -18,12 +18,15 @@ import com.google.android.material.snackbar.Snackbar
 import jp.co.xpower.app.stw.databinding.FragmentRallyDialogBinding
 import jp.co.xpower.app.stw.model.CommonData
 import jp.co.xpower.app.stw.model.CommonDataViewModel
+import jp.co.xpower.app.stw.model.DataStoreViewModel
+import jp.co.xpower.app.stw.util.StwUtils
+import java.util.concurrent.CompletableFuture
 
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+private const val ARG_PARAM1_CN_ID = "cnId"
+private const val ARG_PARAM1_SR_ID= "srId"
 
 /**
  * A simple [Fragment] subclass.
@@ -32,20 +35,25 @@ private const val ARG_PARAM2 = "param2"
  */
 class RallyDialogFragment : DialogFragment() {
     // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private var cnId: String? = null
+    private var srId: String? = null
     private lateinit var binding: FragmentRallyDialogBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+            cnId = it.getString(ARG_PARAM1_CN_ID)
+            srId = it.getString(ARG_PARAM1_SR_ID)
         }
     }
     private val commonDataViewModel by lazy {
         ViewModelProvider(requireActivity())[CommonDataViewModel::class.java]
     }
+
+    private val dataStoreViewModel by lazy {
+        ViewModelProvider(requireActivity())[DataStoreViewModel::class.java]
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -53,13 +61,61 @@ class RallyDialogFragment : DialogFragment() {
 
         binding = FragmentRallyDialogBinding.inflate(layoutInflater)
 
+        val data = commonDataViewModel.dataCommonDataById(cnId!!, srId!!)
+
+        val identityId = commonDataViewModel.identityId
+
+        // ラリータイトル
+        binding.textTitle.text = data!!.title
+
+        // ラリー詳細
+        binding.textDescription.text = data!!.detail
+
+        // 開催期間
+        if(data!!.startAt != 0L && data!!.endAt != 0L){
+            val startAt = StwUtils.formatUnixTime(data!!.startAt!!)
+            val endAt = StwUtils.formatUnixTime(data!!.endAt!!)
+            val textDate:String = binding.textDate.text.toString()
+            binding.textDate.text = textDate + startAt + "-" + endAt
+        }
+
+        // 参加判定
+        if(data!!.joinFlg){
+            binding.imgJoin.visibility = View.VISIBLE
+            binding.buttonJoin.text = resources.getString(R.string.button_select)
+        }
+        else {
+            binding.buttonJoin.text = resources.getString(R.string.button_join)
+        }
+
+        // 開催場所
+        if(data.place != null){
+            val textPlace:String = binding.textPlace.text.toString()
+            binding.textPlace.text = textPlace + data!!.place
+        }
+
+        // 報酬タイトル
+        binding.textReward.text = data!!.rewardTitle
+
+        if(data!!.completeFlg){
+            binding.buttonJoin.isEnabled = false
+            // 非活性
+            binding.buttonJoin.setBackgroundResource(R.drawable.button_gray)
+        }
+
+
         binding.buttonJoin.setOnClickListener {
 
 
-            //Log.d(TAG, commonDataViewModel.commonData.message)
-            //commonDataViewModel.commonData.message = "ok."
+            //val completableFuture = dataStoreViewModel.updateAsyncTask(identityId, "c0004", "s0001", "p0005")
+            val completableFuture = dataStoreViewModel.updateAsyncTask(identityId, data.cnId, data.srId, "")
+            CompletableFuture.allOf(completableFuture).thenRun {
+                Log.i("STW", "Updated a ....")
+                dismiss()
+            }
 
 
+            /*
             val textColor = resources.getColor(R.color.white, requireContext().theme)
             val backgroundColor = resources.getColor(R.color.list_background_color, requireContext().theme)
 
@@ -76,6 +132,7 @@ class RallyDialogFragment : DialogFragment() {
             snackBar.view.setBackgroundColor(backgroundColor);
             snackBar.setTextColor(textColor)
             snackBar.show()
+            */
         }
 
         return binding.root
@@ -111,21 +168,12 @@ class RallyDialogFragment : DialogFragment() {
     }
 
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment RallyDialogFragment.
-         */
-        // TODO: Rename and change types and number of parameters
         @JvmStatic
-        fun newInstance(param1: String, param2: String) =
+        fun newInstance(cnId: String, srId: String) =
             RallyDialogFragment().apply {
                 arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+                    putString(ARG_PARAM1_CN_ID, cnId)
+                    putString(ARG_PARAM1_SR_ID, srId)
                 }
             }
     }
