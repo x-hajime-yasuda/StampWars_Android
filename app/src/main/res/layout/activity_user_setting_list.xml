@@ -16,18 +16,36 @@
 
         <ImageView
             android:id="@+id/imBack"
-            android:layout_width="30dp"
-            android:layout_height="50dp"
+            android:layout_width="40dp"
+            android:layout_height="60dp"
             android:layout_weight="1"
             android:src="@drawable/chevron_left" />
+
+        <TextView
+            android:id="@+id/textView6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="16dp"
+            android:layout_weight="1"
+            android:text="設定"
+            android:textSize="24sp" />
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvSettingList"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:scrollbars="vertical"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvSettingList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

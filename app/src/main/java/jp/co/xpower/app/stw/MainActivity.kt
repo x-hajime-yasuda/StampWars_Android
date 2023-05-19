@@ -503,10 +503,10 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         }
 
         // ユーザ設定画面ボタン（仮）の表示
-//        binding.openUserSetting.setOnClickListener {
-//            val intent2UserSetting = Intent(this@MainActivity, UserSettingActivity::class.java)
-//            startActivity(intent2UserSetting)
-//        }
+        binding.openUserSetting.setOnClickListener {
+            val intent2UserSetting = Intent(this@MainActivity, UserSettingActivity::class.java)
+            startActivity(intent2UserSetting)
+        }
     }
 
     private inner class SwTouchListener : View.OnTouchListener {
