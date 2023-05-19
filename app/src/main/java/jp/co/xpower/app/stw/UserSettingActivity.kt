@@ -1,5 +1,6 @@
 package jp.co.xpower.app.stw
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -30,7 +31,10 @@ class UserSettingActivity : AppCompatActivity() {
         val adapter = RecyclerListAdopter(settingList)
         rvSettingList.adapter = adapter
 
-        binding.imBack.setOnClickListener {
+
+        // header部分の設定
+        binding.header.tvSettingName.text = getString(R.string.setting)
+        binding.header.imBack.setOnClickListener {
             finish()
         }
     }
@@ -38,19 +42,19 @@ class UserSettingActivity : AppCompatActivity() {
     private fun createSettingList() : MutableList<MutableMap<String, Any>> {
         val menuList: MutableList<MutableMap<String, Any>> = mutableListOf()
 
-        var menu = mutableMapOf<String, Any>("name" to "プロフィール設定", "image" to R.drawable.setting_user_profile)
+        var menu = mutableMapOf<String, Any>("name" to getString(R.string.setting_profile), "image" to R.drawable.setting_user_profile)
         menuList.add(menu)
-        menu = mutableMapOf<String, Any>("name" to "メールアドレス設定", "image" to R.drawable.setting_mail)
+        menu = mutableMapOf<String, Any>("name" to getString(R.string.setting_mail), "image" to R.drawable.setting_mail)
         menuList.add(menu)
-        menu = mutableMapOf<String, Any>("name" to "データ引き継ぎ", "image" to R.drawable.setting_install)
+        menu = mutableMapOf<String, Any>("name" to getString(R.string.setting_data_transfer), "image" to R.drawable.setting_install)
         menuList.add(menu)
-        menu = mutableMapOf<String, Any>("name" to "通知", "image" to R.drawable.setting_bell)
+        menu = mutableMapOf<String, Any>("name" to getString(R.string.setting_notification), "image" to R.drawable.setting_bell)
         menuList.add(menu)
-        menu = mutableMapOf<String, Any>("name" to "お知らせ", "image" to R.drawable.setting_announce)
+        menu = mutableMapOf<String, Any>("name" to getString(R.string.setting_announce), "image" to R.drawable.setting_announce)
         menuList.add(menu)
-        menu = mutableMapOf<String, Any>("name" to "アプリの使い方", "image" to R.drawable.setting_info)
+        menu = mutableMapOf<String, Any>("name" to getString(R.string.setting_usage), "image" to R.drawable.setting_info)
         menuList.add(menu)
-        menu = mutableMapOf<String, Any>("name" to "お問い合わせ", "image" to R.drawable.setting_question)
+        menu = mutableMapOf<String, Any>("name" to getString(R.string.setting_contact), "image" to R.drawable.setting_question)
         menuList.add(menu)
 
         return menuList
@@ -94,7 +98,16 @@ class UserSettingActivity : AppCompatActivity() {
         override fun onClick(v: View) {
             val tvSettingName = v.findViewById<TextView>(R.id.settingName)
             val settingName = tvSettingName.text.toString()
-            Toast.makeText(this@UserSettingActivity, settingName, Toast.LENGTH_SHORT).show()
+
+            when(settingName){
+                getString(R.string.setting_notification) -> {
+                    val intent2UserSetting = Intent(this@UserSettingActivity, SettingNotification::class.java)
+                    startActivity(intent2UserSetting)
+                }
+                else -> {
+                    Toast.makeText(this@UserSettingActivity, settingName, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 }

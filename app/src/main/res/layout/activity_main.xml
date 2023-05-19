@@ -87,18 +87,13 @@
             layout="@layout/after_receive"
             android:visibility="gone" />
 
-        <Button
+        <ImageView
             android:id="@+id/openUserSetting"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Button" />
-
-        <!--        <Button-->
-<!--            android:id="@+id/openUserSetting"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="Button"-->
-<!--            android:visibility="gone" />-->
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="right"
+            android:visibility="gone"
+            app:srcCompat="@android:drawable/ic_menu_manage" />
 
     </FrameLayout>
 
