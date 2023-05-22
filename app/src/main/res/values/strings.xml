@@ -33,7 +33,6 @@
     <string name="rally_detail_01">"詳細　　▷ こどもの日は、毎年5月5日に日本で祝われる祝日の一つであり、日本の伝統行事の中でも重要なものの一つです。この日は、子供たちを祝福し、彼らの健やかな成長を願う日とされています。"
 </string>
 
-    
 
     <string name="dialog_title_permission">Please allow permission</string>
     <string name="dialog_message_camera_permission">Couldn\'t access to camera.\nPlease allow permission from \"App Info\", to code scan</string>
@@ -52,4 +51,7 @@
     <string name="setting_announce">お知らせ</string>
     <string name="setting_usage">アプリの使い方</string>
     <string name="setting_contact">お問い合わせ</string>
+
+    <string name="setting_birth">誕生日を選択</string>
+    <string name="setting_selected_birth">%d年%d月%d日</string>
 </resources>

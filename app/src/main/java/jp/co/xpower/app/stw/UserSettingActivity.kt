@@ -11,7 +11,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import jp.co.xpower.app.stw.databinding.ActivityMainBinding
 import jp.co.xpower.app.stw.databinding.ActivityUserSettingListBinding
 
 class UserSettingActivity : AppCompatActivity() {
@@ -100,6 +99,10 @@ class UserSettingActivity : AppCompatActivity() {
             val settingName = tvSettingName.text.toString()
 
             when(settingName){
+                getString(R.string.setting_profile) -> {
+                    val intent2UserSetting = Intent(this@UserSettingActivity, SettingProfileActivity::class.java)
+                    startActivity(intent2UserSetting)
+                }
                 getString(R.string.setting_notification) -> {
                     val intent2UserSetting = Intent(this@UserSettingActivity, SettingNotification::class.java)
                     startActivity(intent2UserSetting)
