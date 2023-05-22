@@ -24,10 +24,16 @@
         android:theme="@style/Theme.Stw"
         tools:targetApi="31">
         <activity
+            android:name=".SettingTransferActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SettingMailActivity"
+            android:exported="false" />
+        <activity
             android:name=".SettingProfileActivity"
             android:exported="false" />
         <activity
-            android:name=".SettingNotification"
+            android:name=".SettingNotificationActivity"
             android:exported="false" />
         <activity
             android:name=".UserSettingActivity"

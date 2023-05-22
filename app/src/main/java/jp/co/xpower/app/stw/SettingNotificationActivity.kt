@@ -2,12 +2,9 @@ package jp.co.xpower.app.stw
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import jp.co.xpower.app.stw.databinding.ActivitySettingNotificationBinding
-import jp.co.xpower.app.stw.databinding.ActivityUserSettingListBinding
 
-class SettingNotification : AppCompatActivity() {
+class SettingNotificationActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySettingNotificationBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {

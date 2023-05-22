@@ -103,8 +103,16 @@ class UserSettingActivity : AppCompatActivity() {
                     val intent2UserSetting = Intent(this@UserSettingActivity, SettingProfileActivity::class.java)
                     startActivity(intent2UserSetting)
                 }
+                getString(R.string.setting_mail) -> {
+                    val intent2UserSetting = Intent(this@UserSettingActivity, SettingMailActivity::class.java)
+                    startActivity(intent2UserSetting)
+                }
+                getString(R.string.setting_data_transfer) -> {
+                    val intent2UserSetting = Intent(this@UserSettingActivity, SettingTransferActivity::class.java)
+                    startActivity(intent2UserSetting)
+                }
                 getString(R.string.setting_notification) -> {
-                    val intent2UserSetting = Intent(this@UserSettingActivity, SettingNotification::class.java)
+                    val intent2UserSetting = Intent(this@UserSettingActivity, SettingNotificationActivity::class.java)
                     startActivity(intent2UserSetting)
                 }
                 else -> {
