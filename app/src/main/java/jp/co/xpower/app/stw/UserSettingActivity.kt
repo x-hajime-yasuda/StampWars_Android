@@ -11,6 +11,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import jp.co.xpower.app.stw.databinding.ActivityUserSettingListBinding
 
 class UserSettingActivity : AppCompatActivity() {
@@ -52,6 +53,8 @@ class UserSettingActivity : AppCompatActivity() {
         menu = mutableMapOf<String, Any>("name" to getString(R.string.setting_announce), "image" to R.drawable.setting_announce)
         menuList.add(menu)
         menu = mutableMapOf<String, Any>("name" to getString(R.string.setting_usage), "image" to R.drawable.setting_info)
+        menuList.add(menu)
+        menu = mutableMapOf<String, Any>("name" to getString(R.string.setting_info), "image" to R.drawable.stamp_icon)
         menuList.add(menu)
         menu = mutableMapOf<String, Any>("name" to getString(R.string.setting_contact), "image" to R.drawable.setting_question)
         menuList.add(menu)
@@ -113,6 +116,10 @@ class UserSettingActivity : AppCompatActivity() {
                 }
                 getString(R.string.setting_notification) -> {
                     val intent2UserSetting = Intent(this@UserSettingActivity, SettingNotificationActivity::class.java)
+                    startActivity(intent2UserSetting)
+                }
+                getString(R.string.setting_info) -> {
+                    val intent2UserSetting = Intent(this@UserSettingActivity, SettingInfoActivity::class.java)
                     startActivity(intent2UserSetting)
                 }
                 else -> {

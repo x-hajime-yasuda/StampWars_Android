@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'com.google.android.gms.oss-licenses-plugin'
 }
 
 android {
@@ -26,6 +27,10 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
+        noSign {
+        signingConfig signingConfigs.debug
         }
     }
     compileOptions {
@@ -71,4 +76,5 @@ dependencies {
     implementation 'com.amplifyframework:aws-auth-cognito:2.6.0'
     implementation 'com.amplifyframework:aws-datastore:2.6.0'
 
+    implementation 'com.google.android.gms:play-services-oss-licenses:17.0.1'
 }

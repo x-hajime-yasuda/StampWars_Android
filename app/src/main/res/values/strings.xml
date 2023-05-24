@@ -50,6 +50,7 @@
     <string name="setting_notification">通知</string>
     <string name="setting_announce">お知らせ</string>
     <string name="setting_usage">アプリの使い方</string>
+    <string name="setting_info">StampWarsについて</string>
     <string name="setting_contact">お問い合わせ</string>
 
     <string name="setting_birth">誕生日を選択</string>
