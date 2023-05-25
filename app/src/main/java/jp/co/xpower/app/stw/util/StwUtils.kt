@@ -1,7 +1,13 @@
 package jp.co.xpower.app.stw.util
 
+import java.net.InetAddress
 import java.text.SimpleDateFormat
 import java.util.*
+import org.apache.commons.net.ntp.NTPUDPClient
+import org.apache.commons.net.ntp.TimeInfo
+
+
+const val NTP_SERVER = "pool.ntp.org"
 
 class StwUtils {
     companion object {
@@ -11,5 +17,23 @@ class StwUtils {
             val date = Date(unixTime * 1000)
             return sdf.format(date)
         }
+
+
+        fun getNtpTime(): Long {
+            val client = NTPUDPClient()
+            client.open()
+
+            try {
+                val info: TimeInfo = client.getTime(InetAddress.getByName(NTP_SERVER))
+                info.computeDetails() // 詳細情報を計算
+
+                val ntpTime = info.message.transmitTimeStamp.time
+                return ntpTime
+            } finally {
+                client.close()
+            }
+        }
+
+
     }
 }

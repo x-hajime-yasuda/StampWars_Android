@@ -38,6 +38,8 @@ class RallyDialogFragment : DialogFragment() {
     private var cnId: String? = null
     private var srId: String? = null
     private lateinit var binding: FragmentRallyDialogBinding
+    var dismissListener: DialogDismissListener? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -103,36 +105,46 @@ class RallyDialogFragment : DialogFragment() {
             binding.buttonJoin.setBackgroundResource(R.drawable.button_gray)
         }
 
-
+        // 選択・参加ボタン押下
         binding.buttonJoin.setOnClickListener {
-
-
-            //val completableFuture = dataStoreViewModel.updateAsyncTask(identityId, "c0004", "s0001", "p0005")
-            val completableFuture = dataStoreViewModel.updateAsyncTask(identityId, data.cnId, data.srId, "")
-            CompletableFuture.allOf(completableFuture).thenRun {
-                Log.i("STW", "Updated a ....")
+            // 参加中のラリーの選択
+            if(data!!.joinFlg){
+                dismissListener?.onSelect(data.cnId, data.srId)
                 dismiss()
             }
+            // 未参加のラリーには参加する
+            else {
+                commonDataViewModel.select(cnId!!, srId!!)
+                val completableFuture = dataStoreViewModel.rallyJoining(commonDataViewModel)
+                CompletableFuture.allOf(completableFuture).thenRun {
+                    dismissListener?.onSelect(cnId!!, srId!!)
+                    dismiss()
+                }
+            }
+
+            /*
+            // test チェックポイント達成
+            val completableFuture2 = dataStoreViewModel.rallyStamping(commonDataViewModel, "p0001")
+            CompletableFuture.allOf(completableFuture2).thenRun {
+                val ret:Int = completableFuture2.get()
+                dismiss()
+            }
+            */
+
 
 
             /*
-            val textColor = resources.getColor(R.color.white, requireContext().theme)
-            val backgroundColor = resources.getColor(R.color.list_background_color, requireContext().theme)
+            //val completableFuture = dataStoreViewModel.updateAsyncTask(identityId, "c0004", "s0001", "p0005")
+            //val completableFuture = dataStoreViewModel.updateAsyncTask(identityId, data.cnId, data.srId, "p0001")
+            val completableFuture = dataStoreViewModel.updateAsyncTask(identityId, data.cnId, data.srId, "")
+            CompletableFuture.allOf(completableFuture).thenRun {
+                Log.i("STW", "Updated a ....")
+                dismissListener?.onDialogDismissed(data.cnId, data.srId)
+                dismiss()
+            }
 
-            val snackBar = Snackbar.make(requireView(), "参加しました。", Snackbar.LENGTH_SHORT)
-            snackBar.addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                override fun onShown(transientBottomBar: Snackbar?) {
-                    super.onShown(transientBottomBar)
-                }
-                override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
-                    super.onDismissed(transientBottomBar, event)
-                    dismiss()
-                }
-            })
-            snackBar.view.setBackgroundColor(backgroundColor);
-            snackBar.setTextColor(textColor)
-            snackBar.show()
             */
+
         }
 
         binding.buttonClose.setOnClickListener {
@@ -173,8 +185,9 @@ class RallyDialogFragment : DialogFragment() {
 
     companion object {
         @JvmStatic
-        fun newInstance(cnId: String, srId: String) =
+        fun newInstance(listener:RallyPublicFragment, cnId: String, srId: String) =
             RallyDialogFragment().apply {
+                dismissListener = listener
                 arguments = Bundle().apply {
                     putString(ARG_PARAM1_CN_ID, cnId)
                     putString(ARG_PARAM1_SR_ID, srId)

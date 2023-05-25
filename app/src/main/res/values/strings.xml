@@ -11,7 +11,8 @@
     <string name="stamp_get">スタンプの数</string>
     <string name="stamp_count">0/99</string>
     <string name="stamp_spot_name">校舎の屋上の奥の奥</string>
-    <string name="stamp_get_reward">報酬を獲得する</string>
+    <string name="stamp_get_reward">景品を獲得する</string>
+    <string name="stamp_got_reward">景品獲得済み</string>
     <string name="stamp_camera_qr_error">スタンプウォーズに対応していないQRが読み込まれました。</string>
 
     <string name="sys_button_close">閉じる</string>

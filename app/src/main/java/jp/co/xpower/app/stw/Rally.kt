@@ -13,5 +13,6 @@ class Rally (
     var rewardTitle:String?,
     var rewardDetail:String?,
     var cover:Int,
-    var joined: Boolean
+    var joined: Boolean,
+    var selected: Boolean
 )

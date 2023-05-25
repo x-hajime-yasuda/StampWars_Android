@@ -18,29 +18,7 @@ class AmplifyApp: Application() {
             Amplify.addPlugin(AWSApiPlugin())
             Amplify.addPlugin(AWSCognitoAuthPlugin())
             Amplify.addPlugin(AWSDataStorePlugin())
-
-            /*
-            Amplify.addPlugin(
-                AWSDataStorePlugin.builder().dataStoreConfiguration(
-                    DataStoreConfiguration.builder()
-                        .syncExpression(StwUser::class.java) { StwUser.ID.eq("u0001") }
-                        .build())
-                    .build())
-            */
-
             Amplify.configure(applicationContext)
-
-            /*
-            Amplify.DataStore.start(
-                {
-                    Log.i("STW", "Initialized DataStore")
-                },
-                {
-                    Log.i("STW", "Initialize error DataStore")
-                }
-            )
-            */
-
             Log.i("STW", "Initialized Amplify")
         } catch (error: AmplifyException) {
             Log.e("STW", "Could not initialize Amplify", error)

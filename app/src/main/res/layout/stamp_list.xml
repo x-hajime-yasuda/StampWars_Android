@@ -59,7 +59,7 @@
         android:layout_height="match_parent"
         android:layout_margin="8dp"
         android:layout_weight="1"
-        android:background="@color/primary_20"
+        android:background="@color/white"
         android:padding="1dp"
         tools:layout_editor_absoluteX="1dp"
         tools:layout_editor_absoluteY="1dp">
@@ -68,7 +68,8 @@
 
     <Button
         android:id="@+id/button_reward"
-        style="@style/Stw_button"
+        android:background="@drawable/button_ripple"
+        android:textColor="@color/white"
         android:layout_width="240dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"

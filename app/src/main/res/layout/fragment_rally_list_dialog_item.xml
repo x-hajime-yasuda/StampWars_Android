@@ -37,14 +37,23 @@
                         android:layout_gravity="center"
                         android:contentDescription="Cover"/>
                     <ImageView
+                        android:id="@+id/selected"
+                        android:visibility="invisible"
+                        android:layout_width="54dp"
+                        android:layout_height="41dp"
+                        android:layout_marginRight="5dp"
+                        android:layout_marginBottom="5dp"
+                        android:layout_gravity="bottom|left"
+                        android:src="@drawable/selected"/>
+                    <ImageView
                         android:id="@+id/joined"
                         android:visibility="invisible"
-                        android:layout_width="70dp"
-                        android:layout_height="50dp"
+                        android:layout_width="54dp"
+                        android:layout_height="41dp"
                         android:layout_marginRight="5dp"
                         android:layout_marginBottom="5dp"
                         android:layout_gravity="bottom|right"
-                        android:src="@drawable/joinning"/>
+                        android:src="@drawable/joined"/>
                 </FrameLayout>
             </LinearLayout>
 

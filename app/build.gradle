@@ -74,6 +74,7 @@ dependencies {
     implementation 'com.amplifyframework:aws-auth-cognito:2.6.0'
     implementation 'com.amplifyframework:aws-datastore:2.6.0'
 
+    implementation 'commons-net:commons-net:3.8.0'
 
     implementation "androidx.core:core-splashscreen:1.0.0"
 
