@@ -1,13 +1,24 @@
 package jp.co.xpower.app.stw.model
 
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.view.View
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import aws.smithy.kotlin.runtime.util.length
+import com.amplifyframework.auth.AuthSession
+import com.amplifyframework.auth.cognito.AWSCognitoAuthSession
 import com.amplifyframework.core.Amplify
+import com.amplifyframework.core.Consumer
+import com.amplifyframework.core.model.query.ObserveQueryOptions
+import com.amplifyframework.core.model.query.predicate.QueryPredicate
+import com.amplifyframework.datastore.DataStoreQuerySnapshot
 import com.amplifyframework.datastore.generated.model.CheckPoint
 import com.amplifyframework.datastore.generated.model.Complete
 import com.amplifyframework.datastore.generated.model.StwCompany
 import com.amplifyframework.datastore.generated.model.StwUser
+import jp.co.xpower.app.stw.MainActivity
 import kotlinx.coroutines.launch
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -24,6 +35,113 @@ class DataStoreViewModel : ViewModel() {
         const val INVALID_CODE = 3  // 不正コード
         const val OTHER_RALLY_CODE = 4  // 選択中以外のコード
     }
+
+    // ユーザー認証
+    fun fetchAuth() :CompletableFuture<String> {
+        val completableFuture = CompletableFuture<String>()
+        val fetchSessionFuture = CompletableFuture<AuthSession>()
+
+        viewModelScope.launch {
+            try {
+                Amplify.Auth.fetchAuthSession(
+                    { fetchSessionFuture.complete(it) },
+                    { fetchSessionFuture.completeExceptionally(it) }
+                )
+                fetchSessionFuture.thenAccept { authSession ->
+                    val cognitoAuthSession = authSession as AWSCognitoAuthSession
+                    val newId = cognitoAuthSession.identityIdResult.value!!
+                    completableFuture.complete(newId)
+                }
+            } catch (e: Exception) {
+                completableFuture.completeExceptionally(e)
+            }
+        }
+        return completableFuture
+    }
+
+    // ユーザー登録
+    fun createUser(identityId:String, name:String) :CompletableFuture<StwUser> {
+        val completableFuture = CompletableFuture<StwUser>()
+
+        viewModelScope.launch {
+            try {
+                val user = StwUser.builder()
+                    .id(identityId)
+                    .name(name)
+                    .build()
+
+                Amplify.DataStore.save(user,
+                    { completableFuture.complete(user) },
+                    { completableFuture.completeExceptionally(it) }
+                )
+            } catch (e: Exception) {
+                completableFuture.completeExceptionally(e)
+            }
+        }
+
+        return completableFuture
+    }
+
+    // DataStore開始
+    fun initDataStore() :CompletableFuture<Boolean> {
+        val completableFuture = CompletableFuture<Boolean>()
+
+        viewModelScope.launch {
+            try {
+                Amplify.DataStore.start(
+                    { completableFuture.complete(true) },
+                    { completableFuture.completeExceptionally(it) }
+                )
+            } catch (e: Exception) {
+                completableFuture.completeExceptionally(e)
+            }
+        }
+        return completableFuture
+    }
+
+
+    // 会社・ラリー詳細取得
+    fun getCompany() :CompletableFuture<List<StwCompany>> {
+        val completableFuture = CompletableFuture<List<StwCompany>>()
+
+        Amplify.DataStore.observeQuery(
+            StwCompany::class.java,
+            ObserveQueryOptions(),
+            { Log.i("STW", "getCompany established.") },
+            Consumer<DataStoreQuerySnapshot<StwCompany>>{
+                if( it.items.length != 0){
+                    completableFuture.complete(it.items.toList())
+                }
+            },
+            { Log.e("STW", "getCompany failed.", it) },
+            { Log.i("STW", "getCompany cancelled.") }
+        )
+
+        return completableFuture
+    }
+
+    // ユーザー情報取得
+    fun getUser(identityId:String) :CompletableFuture<List<StwUser>> {
+        val completableFuture = CompletableFuture<List<StwUser>>()
+
+        val predicate: QueryPredicate = StwUser.ID.eq(identityId)
+        Amplify.DataStore.observeQuery(
+            StwUser::class.java,
+            ObserveQueryOptions(predicate, null),
+            { Log.i("STW", "getUser established.") },
+            Consumer<DataStoreQuerySnapshot<StwUser>>{
+                if( it.items.length != 0){
+                    completableFuture.complete(it.items.toList())
+                }
+            },
+            { Log.e("STW", "getUser failed.", it) },
+            { Log.i("STW", "getUser cancelled.") }
+        )
+
+        return completableFuture
+    }
+
+
 
     fun updateRewardAsyncTask(id:String, cnId:String, srId:String, isReward:Boolean) : CompletableFuture<Boolean>{
         val completableFuture = CompletableFuture<Boolean>()

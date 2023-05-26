@@ -47,6 +47,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import jp.co.xpower.app.stw.databinding.ActivityMainBinding
@@ -86,6 +87,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
     private val initLiveData = MutableLiveData<Boolean>()
     private val markerList: MutableList<Marker> = mutableListOf()
 
+    private var isDataStoreInitialized = false
 
 
     companion object {
@@ -213,7 +215,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 
         val headers = mapOf("Authorization" to "Bearer your_token_here")
 
-
         return SimpleGraphQLRequest(
             document,
             headers,
@@ -224,6 +225,20 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 
     data class GetServerTimeResponse(val serverTime: Temporal.DateTime)
 
+    fun updateUser(){
+        val futureUser = dataStoreViewModel.getUser(identityId!!)
+        CompletableFuture.allOf(futureUser).thenRun {
+            val user = futureUser.get()
+            updateDataViewModel(user[0])
+            // メインビュー処理
+            val mainHandler = Handler(Looper.getMainLooper())
+            mainHandler.post {
+                // 選択中ラリーの表示更新
+                updateSelected()
+            }
+        }
+    }
+
     private fun startInitProcess(isAgree:Boolean) {
         val fetchSessionFuture = CompletableFuture<AuthSession>()
         val companyQueryFuture = CompletableFuture<List<StwCompany>>()
@@ -232,89 +247,45 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         val pref = getSharedPreferences("STwPreferences", Context.MODE_PRIVATE)
         identityId = pref.getString(PREF_KEY_USER_ID, "")
 
-        // データ同期開始
-        Amplify.DataStore.start(
-            {
-                // 会社情報・ラリー詳細
-                Amplify.DataStore.observeQuery(
-                    StwCompany::class.java,
-                    ObserveQueryOptions(),
-                    { Log.i("STW", "Subscription established.") },
-                    Consumer<DataStoreQuerySnapshot<StwCompany>>{
-                        if( it.items.length != 0){
-                            companyQueryFuture.complete(it.items.toList())
-                        }
-                    },
-                    { Log.e("STW", "DataStore.observeQuery failed.", it) },
-                    { Log.i("STW", "DataStore.observeQuery cancelled.") }
-                )
-                // 2回目以降はユーザーデータを取得する
-                if(isAgree){
-                    val predicate: QueryPredicate = StwUser.ID.eq(identityId)
-                    Amplify.DataStore.observeQuery(
-                        StwUser::class.java,
-                        ObserveQueryOptions(predicate, null),
-                        { Log.i("STW", "Subscription established.") },
-                        Consumer<DataStoreQuerySnapshot<StwUser>>{
-                            if( it.items.length != 0){
-                                userQueryFuture.complete(it.items.toList())
-                            }
-                        },
-                        { Log.e("STW", "Subscription failed.", it) },
-                        { Log.i("STW", "Subscription cancelled.") }
-                    )
+
+        val future = dataStoreViewModel.initDataStore()
+        CompletableFuture.allOf(future).thenRun {
+            Log.i("STW", "DataStore.initDataStore.")
+
+            val futureCompany = dataStoreViewModel.getCompany()
+
+            val futureUser = dataStoreViewModel.getUser(identityId!!)
+
+            if(isAgree) {
+                CompletableFuture.allOf(futureCompany, futureUser).thenRun {
+                    // 会社・ラリー情報
+                    val company = futureCompany.get()
+                    companyList = company.toList() as ArrayList<StwCompany>
+
+                    // ユーザー情報
+                    val user = futureUser.get()
+                    updateDataViewModel(user[0])
+
+                    // メインビュー処理
+                    val mainHandler = Handler(Looper.getMainLooper())
+                    mainHandler.post {
+                        mainInitialize()
+                    }
+
+                    // ローディング完了
+                    initLiveData.postValue(true)
                 }
-            },
-            { companyQueryFuture.completeExceptionally(it) }
-        )
-
-        // タイムサーバーから現在日時を取得
-        val timeFuture = CompletableFuture.supplyAsync {
-            StwUtils.getNtpTime()
-        }
-        //CompletableFuture.allOf(timeFuture).thenRun {
-        //    serverTime = timeFuture.get() / 1000
-        //}
-
-        if(isAgree){
-            CompletableFuture.allOf(companyQueryFuture, userQueryFuture, timeFuture).thenRun {
-
-                serverTime = timeFuture.get() / 1000
-
-                // 会社・ラリー詳細
-                val companyes = companyQueryFuture.get()
-                if(companyes != null){
-                    companyList = companyes.toList() as ArrayList<StwCompany>
-                }
-
-                val users = userQueryFuture.get()
-                updateDataViewModel(users[0])
-
-                // メインビュー処理
-                val mainHandler = Handler(Looper.getMainLooper())
-                mainHandler.post {
-                    mainInitialize()
-                }
-
-                // ローディング完了
-                initLiveData.postValue(true)
-                Log.e("STW", "ok.")
             }
-        }
-        else {
-            // 初回起動時はラリー詳細のみ取得する
-            CompletableFuture.allOf(companyQueryFuture).thenRun {
-                serverTime = timeFuture.get() / 1000
+            else {
+                CompletableFuture.allOf(futureCompany).thenRun {
+                    // 会社・ラリー情報
+                    val company = futureCompany.get()
+                    companyList = company.toList() as ArrayList<StwCompany>
 
-                // 会社・ラリー詳細
-                val companyes = companyQueryFuture.get()
-                if(companyes != null){
-                    companyList = companyes.toList() as ArrayList<StwCompany>
+                    // ローディング完了
+                    initLiveData.postValue(true)
                 }
 
-                // ローディング完了
-                initLiveData.postValue(true)
-                Log.e("STW", "ok.")
             }
         }
     }
@@ -401,15 +372,14 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             termsBinding.button.setOnClickListener {
                 Log.i("MainActivity Map ======>", "ready")
 
-                // 新規ユーザー登録
-                val user = StwUser.builder()
-                    .id(identityNewId)
-                    .name("名前未設定")
-                    .build()
-                Amplify.DataStore.save(user,
-                    {
-                        identityId = identityNewId
-
+                // 認証開始
+                val futureAuth = dataStoreViewModel.fetchAuth()
+                CompletableFuture.allOf(futureAuth).thenRun {
+                    identityId = futureAuth.get()
+                    Log.e("STW", "auth")
+                    val futureCreate = dataStoreViewModel.createUser(identityId!!, "名前未設定")
+                    CompletableFuture.allOf(futureCreate).thenRun {
+                        val user = futureCreate.get()
                         // View更新
                         updateDataViewModel(user)
 
@@ -422,9 +392,8 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                             // メインビュー処理
                             mainInitialize()
                         }
-                    },
-                    { Log.e("STW", "Save failed", it) }
-                )
+                    }
+                }
             }
         }
     }
@@ -486,9 +455,14 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             val mainHandler = Handler(Looper.getMainLooper())
             mainHandler.post {
                 binding.tvStampCount.text = "${completeCount}/${cd.cp.count()}"
+                // ラリー選択バー表示
+                binding.btStampList.visibility = View.VISIBLE
+                binding.tvStamp.visibility = View.VISIBLE
+                binding.layoutSelected.layout.visibility = View.VISIBLE
             }
         }
         else {
+            // ラリー選択バー非表示
             binding.btStampList.visibility = View.INVISIBLE
             binding.tvStamp.visibility = View.INVISIBLE
             binding.layoutSelected.layout.visibility = View.INVISIBLE

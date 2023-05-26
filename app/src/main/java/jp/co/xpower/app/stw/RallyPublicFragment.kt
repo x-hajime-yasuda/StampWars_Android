@@ -85,7 +85,8 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
 
                     // MAP画面の選択状態を更新
                     val mainActivity = requireActivity() as MainActivity
-                    mainActivity.updateSelected()
+                    //mainActivity.updateSelected()
+                    mainActivity.updateUser()
 
                     // ボトムシートも閉じる
                     val fragmentManager = requireActivity().supportFragmentManager
