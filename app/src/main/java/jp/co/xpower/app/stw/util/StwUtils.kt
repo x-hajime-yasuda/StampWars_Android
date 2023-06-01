@@ -13,7 +13,8 @@ class StwUtils {
     companion object {
         fun formatUnixTime(unixTime: Long): String {
             //val sdf = SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss", Locale.getDefault())
-            val sdf = SimpleDateFormat("yyyy年MM月dd日", Locale.getDefault())
+            //val sdf = SimpleDateFormat("yyyy年MM月dd日", Locale.getDefault())
+            val sdf = SimpleDateFormat("yyyy/MM/dd", Locale.getDefault())
             val date = Date(unixTime * 1000)
             return sdf.format(date)
         }

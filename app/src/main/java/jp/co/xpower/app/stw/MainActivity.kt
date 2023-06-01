@@ -30,11 +30,14 @@ import com.amplifyframework.api.aws.GsonVariablesSerializer
 import com.amplifyframework.api.graphql.GraphQLRequest
 import com.amplifyframework.api.graphql.GraphQLResponse
 import com.amplifyframework.api.graphql.SimpleGraphQLRequest
+import com.amplifyframework.api.graphql.model.ModelQuery
 import com.amplifyframework.auth.AuthSession
 import com.amplifyframework.auth.cognito.AWSCognitoAuthSession
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.core.Consumer
+import com.amplifyframework.core.model.Model
 import com.amplifyframework.core.model.query.ObserveQueryOptions
+import com.amplifyframework.core.model.query.Page.DEFAULT_LIMIT
 import com.amplifyframework.core.model.query.predicate.QueryPredicate
 import com.amplifyframework.core.model.temporal.Temporal
 import com.amplifyframework.datastore.*
@@ -58,13 +61,11 @@ import jp.co.xpower.app.stw.model.CommonDataViewModel
 import jp.co.xpower.app.stw.model.DataStoreViewModel
 import jp.co.xpower.app.stw.util.StwUtils
 import kotlinx.coroutines.*
-import java.io.FileInputStream
-import java.io.FileNotFoundException
-import java.io.IOException
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 
+import jp.co.xpower.app.stw.model.StorageViewModel
 
 
 class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
@@ -142,6 +143,10 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         ViewModelProvider(this)[DataStoreViewModel::class.java]
     }
 
+    private val storageViewModel by lazy {
+        ViewModelProvider(this)[StorageViewModel::class.java]
+    }
+
     // アプリ全体共通ビューモデルの設定処理
     private fun updateDataViewModel(user:StwUser){
         val commonDataList = ArrayList<CommonData>()
@@ -209,22 +214,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         commonDataViewModel.commonDataList = commonDataList
     }
 
-    //private fun getTodoRequest(id: String): GraphQLRequest<Todo> {
-    private fun getEventRequest(): GraphQLRequest<Temporal.DateTime> {
-        val document = "query GetServerTime { getServerTime { serverTime } }"
-
-        val headers = mapOf("Authorization" to "Bearer your_token_here")
-
-        return SimpleGraphQLRequest(
-            document,
-            headers,
-            GetServerTimeResponse::class.java,
-            GsonVariablesSerializer()
-        )
-    }
-
-    data class GetServerTimeResponse(val serverTime: Temporal.DateTime)
-
     fun updateUser(){
         val futureUser = dataStoreViewModel.getUser(identityId!!)
         CompletableFuture.allOf(futureUser).thenRun {
@@ -240,13 +229,15 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
     }
 
     private fun startInitProcess(isAgree:Boolean) {
-        val fetchSessionFuture = CompletableFuture<AuthSession>()
-        val companyQueryFuture = CompletableFuture<List<StwCompany>>()
-        val userQueryFuture = CompletableFuture<List<StwUser>>()
 
         val pref = getSharedPreferences("STwPreferences", Context.MODE_PRIVATE)
         identityId = pref.getString(PREF_KEY_USER_ID, "")
 
+        // 画像ダウンロード(ラリー・景品)
+        val futureRallyImage = storageViewModel.imageDownload(filesDir.absolutePath, StorageViewModel.IMAGE_DIR_RALLY)
+        val futureRewardImage = storageViewModel.imageDownload(filesDir.absolutePath, StorageViewModel.IMAGE_DIR_REWARD)
+        CompletableFuture.allOf(futureRallyImage, futureRewardImage).thenRun {
+        }
 
         val future = dataStoreViewModel.initDataStore()
         CompletableFuture.allOf(future).thenRun {
@@ -445,10 +436,8 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                 adapter = StampAdapter(list)
             }
 
-
             // MAP更新
             updateMap()
-
 
             // 獲得数だけ強調表示
             binding.layoutStamp.textGet.changeSizeOfText(completeCount.toString(), cd.cp.count().toString(),38)
@@ -467,9 +456,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             binding.tvStamp.visibility = View.INVISIBLE
             binding.layoutSelected.layout.visibility = View.INVISIBLE
         }
-
     }
-
 
     private fun updateMap() {
         if (::googleMap.isInitialized) {
@@ -553,8 +540,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             }
             */
 
-
-
         }
 
         // 選択中ラリーの表示更新
@@ -604,23 +589,41 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         binding.layoutReward.buttonClose.setOnClickListener(OnButtonClick())
         binding.layoutReceived.buttonClose.setOnClickListener(OnButtonClick())
 
-        // 獲得数だけ強調表示
-        //binding.layoutStamp.textGet.changeSizeOfText("53", 38)
-
         // ボトムメニュー ボタンイベント
         binding.bottomNavigation.setOnItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.menu_home -> {
                     // ボトムシート表示
-                    val aa = ArrayList<StwCompany>()
                     BottomSheetFragment.newInstance(companyList).show(supportFragmentManager, "dialog")
 
                     true
                 }
                 R.id.menu_profile -> {
                     val intent = Intent(this, CameraActivity::class.java)
-                    //startActivity(intent)
                     cameraLauncher.launch(intent)
+
+
+                    /*
+                    Amplify.API.query(qrRequest("Z0FBQUFBQmtkYlFVNnBsRHdveXlTN0Zfa1NxU2JQeDZxWFVPRXhTTUpvbnNZUzluU0dzZVBlOS04czJUTzV6cVZva25Tb1ZFY3FtTEJ4dHp1YUZ5ZWNBMmhKVHk3aXJKQ1YzLVlNbmxjbldRbUhwTDBxVFQ3TFE9@6e424c5469356d44494d59586b326e6b484c416c37344a3437785364393470355f444538436643584276553d"),
+                        {
+                            Log.d("MyAmplifyApp", "Response = $it")
+                        },
+                        {
+                            Log.e("MyAmplifyApp", "Error!", it)
+                        }
+                    )
+                    */
+
+                    /*
+                    Amplify.API.query(serverTimeRequest(),
+                        {
+                            Log.d("MyAmplifyApp", "Response = $it")
+                        },
+                        {
+                            Log.e("MyAmplifyApp", "Error!", it)
+                        }
+                    )
+                    */
 
                     true
                 }
@@ -646,6 +649,33 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 //            startActivity(intent2UserSetting)
 //        }
     }
+
+    /*
+    * in: 読み取ったQRコード
+    * return: QRコードデコードリクエスト
+    * */
+    private fun qrRequest(text:String): GraphQLRequest<String> {
+        val document = ("query getQRDecode(\$qr: String) { "
+                + "getQRDecode(qr: \$qr) "
+                + "}")
+        return SimpleGraphQLRequest(
+            document,
+            mapOf("qr" to text),
+            String::class.java,
+            GsonVariablesSerializer())
+    }
+
+    private fun serverTimeRequest(): GraphQLRequest<String> {
+        val document = ("query getMyData { "
+                + "getMyData "
+                + "}")
+        return SimpleGraphQLRequest(
+            document,
+            mapOf("id" to "abc"),
+            String::class.java,
+            GsonVariablesSerializer())
+    }
+
 
     private inner class SwTouchListener : View.OnTouchListener {
         override fun onTouch(v: View, event: MotionEvent): Boolean {

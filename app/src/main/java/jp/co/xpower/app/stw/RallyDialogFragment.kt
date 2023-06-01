@@ -2,6 +2,8 @@ package jp.co.xpower.app.stw
 
 import android.app.Dialog
 import android.content.ContentValues.TAG
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -19,7 +21,9 @@ import jp.co.xpower.app.stw.databinding.FragmentRallyDialogBinding
 import jp.co.xpower.app.stw.model.CommonData
 import jp.co.xpower.app.stw.model.CommonDataViewModel
 import jp.co.xpower.app.stw.model.DataStoreViewModel
+import jp.co.xpower.app.stw.model.StorageViewModel
 import jp.co.xpower.app.stw.util.StwUtils
+import java.io.File
 import java.util.concurrent.CompletableFuture
 
 
@@ -56,6 +60,25 @@ class RallyDialogFragment : DialogFragment() {
         ViewModelProvider(requireActivity())[DataStoreViewModel::class.java]
     }
 
+
+    private fun getOnlineImage(type: String) :Bitmap? {
+        var bitmap: Bitmap? = null
+
+        // ローカルストレージからラリー画像のロード
+        val imageName = "${cnId}_${srId}.png"
+        val dir = File("${requireContext().filesDir.absolutePath}/${type}")
+        val matchingFiles = dir.listFiles { file ->
+            file.isFile && file.path.contains(imageName, ignoreCase = true)
+        }
+        // 保存済み画像があればロード
+        val hit:Int = matchingFiles.size
+        if(hit != 0){
+            bitmap = BitmapFactory.decodeFile(matchingFiles[0].absolutePath)
+        }
+
+        return bitmap
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -65,7 +88,23 @@ class RallyDialogFragment : DialogFragment() {
 
         val data = commonDataViewModel.dataCommonDataById(cnId!!, srId!!)
 
-        val identityId = commonDataViewModel.identityId
+        // ラリー画像
+        var bitmapRally: Bitmap? = getOnlineImage(StorageViewModel.IMAGE_DIR_RALLY)
+        if(bitmapRally != null){
+            binding.imgMain.setImageBitmap(bitmapRally)
+        }
+        else {
+            binding.imgMain.setImageResource(R.drawable.no_image)
+        }
+
+        // 景品画像
+        var bitmapReward: Bitmap? = getOnlineImage(StorageViewModel.IMAGE_DIR_REWARD)
+        if(bitmapReward != null){
+            binding.imgReward.setImageBitmap(bitmapReward)
+        }
+        else {
+            binding.imgReward.setImageResource(R.drawable.no_image)
+        }
 
         // ラリータイトル
         binding.textTitle.text = data!!.title
@@ -78,7 +117,7 @@ class RallyDialogFragment : DialogFragment() {
             val startAt = StwUtils.formatUnixTime(data!!.startAt!!)
             val endAt = StwUtils.formatUnixTime(data!!.endAt!!)
             val textDate:String = binding.textDate.text.toString()
-            binding.textDate.text = textDate + startAt + "-" + endAt
+            binding.textDate.text = textDate + startAt + " - " + endAt
         }
 
         // 参加判定

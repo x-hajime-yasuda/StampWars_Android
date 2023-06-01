@@ -73,6 +73,7 @@ dependencies {
     implementation 'com.amplifyframework:aws-api:2.6.0'
     implementation 'com.amplifyframework:aws-auth-cognito:2.6.0'
     implementation 'com.amplifyframework:aws-datastore:2.6.0'
+    implementation 'com.amplifyframework:aws-storage-s3:2.8.4'
 
     implementation 'commons-net:commons-net:3.8.0'
 

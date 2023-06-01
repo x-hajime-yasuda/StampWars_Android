@@ -2,6 +2,7 @@ package jp.co.xpower.app.stw
 
 import android.content.ContentValues
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -16,6 +17,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.xpower.app.stw.databinding.*
 import jp.co.xpower.app.stw.model.CommonData
 import jp.co.xpower.app.stw.model.CommonDataViewModel
+import jp.co.xpower.app.stw.model.StorageViewModel
+import java.io.File
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -182,7 +185,7 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
                 list.detail,
                 list.rewardTitle,
                 list.rewardDetail,
-                R.drawable.rally,
+                R.drawable.no_image,
                 joined = list.joinFlg,
                 selected = selected
             )
@@ -218,8 +221,24 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
                 binding.selected.visibility = View.INVISIBLE
             }
 
+            // ローカルストレージからラリー画像のロード
+            val imageName = "${rally.cnId}_${rally.srId}.png"
+            //val dir = requireContext().filesDir
+            val dir = File("${requireContext().filesDir.absolutePath}/${StorageViewModel.IMAGE_DIR_RALLY}")
+            val matchingFiles = dir.listFiles { file ->
+                file.isFile && file.path.contains(imageName, ignoreCase = true)
+            }
+            // 保存済み画像があればロード
+            val hit:Int = matchingFiles.size
+            if(hit != 0){
+                val bitmap = BitmapFactory.decodeFile(matchingFiles[0].absolutePath)
+                binding.cover.setImageBitmap(bitmap)
+            }
+            // 画像登録が無い場合はノーイメージを表示
+            else {
+                binding.cover.setImageResource(rally.cover)
+            }
 
-            binding.cover.setImageResource(rally.cover)
             binding.title.text = rally.title
             //binding.description.text = rally.description      // 一覧では不要
             binding.cardView.setOnClickListener{
