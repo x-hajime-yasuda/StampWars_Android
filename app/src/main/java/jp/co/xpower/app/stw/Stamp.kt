@@ -6,6 +6,6 @@ var STAMP_ID_EXTRA = "stampExtra"
 
 class Stamp (
     var cover:Int,
-    var title: String,
+    var title: String?,
     var id: Int? = stampList.size
 )

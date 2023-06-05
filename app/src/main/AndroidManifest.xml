@@ -21,27 +21,48 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Stw"
+        android:theme="@style/SplashTheme"
         tools:targetApi="31">
         <activity
             android:name=".SettingInfoActivity"
+            android:theme="@style/Theme.Stw"
             android:exported="false" />
         <activity
+            android:name="com.google.android.gms.oss.licenses.OssLicensesMenuActivity"
+            android:theme="@style/Theme.Stw"
+            android:exported="false" />
+        <activity
+            android:name="com.google.android.gms.oss.licenses.OssLicensesActivity"
+            android:theme="@style/Theme.Stw"
+            android:exported="false" />
+
+        <activity
             android:name=".SettingTransferActivity"
+            android:theme="@style/Theme.Stw"
             android:exported="false" />
         <activity
             android:name=".SettingMailActivity"
+            android:theme="@style/Theme.Stw"
             android:exported="false" />
         <activity
             android:name=".SettingProfileActivity"
+            android:theme="@style/Theme.Stw"
             android:exported="false" />
         <activity
             android:name=".SettingNotificationActivity"
+            android:theme="@style/Theme.Stw"
             android:exported="false" />
+        <activity
+            android:name=".TermsActivity"
+            android:exported="false"
+            android:label="@string/title_activity_terms"
+            android:theme="@style/SplashTheme.NoActionBar" />
         <activity
             android:name=".UserSettingActivity"
+            android:theme="@style/Theme.Stw"
             android:exported="false" />
         <activity
+            android:theme="@style/Theme.Stw"
             android:name=".CameraActivity"
             android:exported="false" />
         <activity

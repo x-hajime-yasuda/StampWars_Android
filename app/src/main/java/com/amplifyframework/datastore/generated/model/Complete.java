@@ -6,11 +6,12 @@ import androidx.core.util.ObjectsCompat;
 import java.util.Objects;
 import java.util.List;
 
-/** This is an auto generated class representing the complete type in your schema. */
+/** This is an auto generated class representing the Complete type in your schema. */
 public final class Complete {
   private final String cnId;
   private final String srId;
   private final Integer history;
+  private final Boolean got;
   private final List<CheckPoint> cp;
   public String getCnId() {
       return cnId;
@@ -24,14 +25,19 @@ public final class Complete {
       return history;
   }
   
+  public Boolean getGot() {
+      return got;
+  }
+  
   public List<CheckPoint> getCp() {
       return cp;
   }
   
-  private Complete(String cnId, String srId, Integer history, List<CheckPoint> cp) {
+  private Complete(String cnId, String srId, Integer history, Boolean got, List<CheckPoint> cp) {
     this.cnId = cnId;
     this.srId = srId;
     this.history = history;
+    this.got = got;
     this.cp = cp;
   }
   
@@ -46,6 +52,7 @@ public final class Complete {
       return ObjectsCompat.equals(getCnId(), complete.getCnId()) &&
               ObjectsCompat.equals(getSrId(), complete.getSrId()) &&
               ObjectsCompat.equals(getHistory(), complete.getHistory()) &&
+              ObjectsCompat.equals(getGot(), complete.getGot()) &&
               ObjectsCompat.equals(getCp(), complete.getCp());
       }
   }
@@ -56,6 +63,7 @@ public final class Complete {
       .append(getCnId())
       .append(getSrId())
       .append(getHistory())
+      .append(getGot())
       .append(getCp())
       .toString()
       .hashCode();
@@ -69,6 +77,7 @@ public final class Complete {
     return new CopyOfBuilder(cnId,
       srId,
       history,
+      got,
       cp);
   }
   public interface CnIdStep {
@@ -77,25 +86,23 @@ public final class Complete {
   
 
   public interface SrIdStep {
-    HistoryStep srId(String srId);
-  }
-  
-
-  public interface HistoryStep {
-    BuildStep history(Integer history);
+    BuildStep srId(String srId);
   }
   
 
   public interface BuildStep {
     Complete build();
+    BuildStep history(Integer history);
+    BuildStep got(Boolean got);
     BuildStep cp(List<CheckPoint> cp);
   }
   
 
-  public static class Builder implements CnIdStep, SrIdStep, HistoryStep, BuildStep {
+  public static class Builder implements CnIdStep, SrIdStep, BuildStep {
     private String cnId;
     private String srId;
     private Integer history;
+    private Boolean got;
     private List<CheckPoint> cp;
     @Override
      public Complete build() {
@@ -104,6 +111,7 @@ public final class Complete {
           cnId,
           srId,
           history,
+          got,
           cp);
     }
     
@@ -115,7 +123,7 @@ public final class Complete {
     }
     
     @Override
-     public HistoryStep srId(String srId) {
+     public BuildStep srId(String srId) {
         Objects.requireNonNull(srId);
         this.srId = srId;
         return this;
@@ -123,8 +131,13 @@ public final class Complete {
     
     @Override
      public BuildStep history(Integer history) {
-        Objects.requireNonNull(history);
         this.history = history;
+        return this;
+    }
+    
+    @Override
+     public BuildStep got(Boolean got) {
+        this.got = got;
         return this;
     }
     
@@ -137,10 +150,11 @@ public final class Complete {
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String cnId, String srId, Integer history, List<CheckPoint> cp) {
+    private CopyOfBuilder(String cnId, String srId, Integer history, Boolean got, List<CheckPoint> cp) {
       super.cnId(cnId)
         .srId(srId)
         .history(history)
+        .got(got)
         .cp(cp);
     }
     
@@ -157,6 +171,11 @@ public final class Complete {
     @Override
      public CopyOfBuilder history(Integer history) {
       return (CopyOfBuilder) super.history(history);
+    }
+    
+    @Override
+     public CopyOfBuilder got(Boolean got) {
+      return (CopyOfBuilder) super.got(got);
     }
     
     @Override

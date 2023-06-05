@@ -1,7 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-<!--    <color name="textColorPrimary">#010101</color> -->
-<!--    <color name="textColorPrimary">#ffffff</color> -->
+    <!--    <color name="textColorPrimary">#010101</color> -->
+    <!--    <color name="textColorPrimary">#ffffff</color> -->
     <color name="textColorPrimary">#010101</color>
 
     <!-- 基本テーマ -->
@@ -32,6 +32,11 @@
         <item name="android:background">@drawable/button_ripple</item>
     </style>
 
+    <style name="Stw_button_gray" parent="Theme.AppCompat.Light">
+        <item name="android:textColor">#999999</item>
+        <item name="android:background">@drawable/button_ripple</item>
+    </style>
+
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="dialogCornerRadius">12dp</item>
     </style>
@@ -52,5 +57,25 @@
         <!-- Customize your theme here. -->
         <item name="android:fontFamily">@font/zen_kaku_gothic_antique_regular</item>
     </style>
+
+
+
+    <style name="SplashTheme" parent="Theme.SplashScreen.IconBackground">
+        <item name="windowSplashScreenBackground">@color/white</item>
+        <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/sumi1</item>
+        <item name="postSplashScreenTheme">@style/Theme.Stw</item>
+        <item name="windowSplashScreenAnimationDuration">2000</item>
+    </style>
+
+    <style name="SplashTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="SplashTheme2.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="SplashTheme2.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
 
 </resources>

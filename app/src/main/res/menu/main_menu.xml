@@ -8,4 +8,8 @@
         android:id="@+id/menu_profile"
         android:icon="@drawable/camera"
         android:title="@string/menu_camera" />
+    <!-- <item
+        android:id="@+id/menu_profile2"
+        android:icon="@drawable/camera"
+        android:title="@string/menu_camera" /> -->
 </menu>

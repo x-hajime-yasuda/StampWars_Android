@@ -25,7 +25,7 @@
             android:layout_height="match_parent"
             android:background="#80404040"
             android:orientation="horizontal"
-            android:visibility="gone"></LinearLayout>
+            android:visibility="gone"/>
 
         <include
             android:id="@+id/layout_selected"

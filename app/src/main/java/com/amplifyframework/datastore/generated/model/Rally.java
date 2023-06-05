@@ -17,6 +17,7 @@ public final class Rally {
   private final Integer total;
   private final String detail;
   private final Integer status;
+  private final Integer completeCount;
   private final String rewardTitle;
   private final String rewardDetail;
   private final List<CheckPoint> cp;
@@ -52,6 +53,10 @@ public final class Rally {
       return status;
   }
   
+  public Integer getCompleteCount() {
+      return completeCount;
+  }
+  
   public String getRewardTitle() {
       return rewardTitle;
   }
@@ -64,7 +69,7 @@ public final class Rally {
       return cp;
   }
   
-  private Rally(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, String place, Integer total, String detail, Integer status, String rewardTitle, String rewardDetail, List<CheckPoint> cp) {
+  private Rally(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, String place, Integer total, String detail, Integer status, Integer completeCount, String rewardTitle, String rewardDetail, List<CheckPoint> cp) {
     this.srId = srId;
     this.title = title;
     this.startAt = startAt;
@@ -73,6 +78,7 @@ public final class Rally {
     this.total = total;
     this.detail = detail;
     this.status = status;
+    this.completeCount = completeCount;
     this.rewardTitle = rewardTitle;
     this.rewardDetail = rewardDetail;
     this.cp = cp;
@@ -94,6 +100,7 @@ public final class Rally {
               ObjectsCompat.equals(getTotal(), rally.getTotal()) &&
               ObjectsCompat.equals(getDetail(), rally.getDetail()) &&
               ObjectsCompat.equals(getStatus(), rally.getStatus()) &&
+              ObjectsCompat.equals(getCompleteCount(), rally.getCompleteCount()) &&
               ObjectsCompat.equals(getRewardTitle(), rally.getRewardTitle()) &&
               ObjectsCompat.equals(getRewardDetail(), rally.getRewardDetail()) &&
               ObjectsCompat.equals(getCp(), rally.getCp());
@@ -111,6 +118,7 @@ public final class Rally {
       .append(getTotal())
       .append(getDetail())
       .append(getStatus())
+      .append(getCompleteCount())
       .append(getRewardTitle())
       .append(getRewardDetail())
       .append(getCp())
@@ -131,6 +139,7 @@ public final class Rally {
       total,
       detail,
       status,
+      completeCount,
       rewardTitle,
       rewardDetail,
       cp);
@@ -145,6 +154,7 @@ public final class Rally {
     BuildStep total(Integer total);
     BuildStep detail(String detail);
     BuildStep status(Integer status);
+    BuildStep completeCount(Integer completeCount);
     BuildStep rewardTitle(String rewardTitle);
     BuildStep rewardDetail(String rewardDetail);
     BuildStep cp(List<CheckPoint> cp);
@@ -160,6 +170,7 @@ public final class Rally {
     private Integer total;
     private String detail;
     private Integer status;
+    private Integer completeCount;
     private String rewardTitle;
     private String rewardDetail;
     private List<CheckPoint> cp;
@@ -175,6 +186,7 @@ public final class Rally {
           total,
           detail,
           status,
+          completeCount,
           rewardTitle,
           rewardDetail,
           cp);
@@ -229,6 +241,12 @@ public final class Rally {
     }
     
     @Override
+     public BuildStep completeCount(Integer completeCount) {
+        this.completeCount = completeCount;
+        return this;
+    }
+    
+    @Override
      public BuildStep rewardTitle(String rewardTitle) {
         this.rewardTitle = rewardTitle;
         return this;
@@ -249,7 +267,7 @@ public final class Rally {
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, String place, Integer total, String detail, Integer status, String rewardTitle, String rewardDetail, List<CheckPoint> cp) {
+    private CopyOfBuilder(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, String place, Integer total, String detail, Integer status, Integer completeCount, String rewardTitle, String rewardDetail, List<CheckPoint> cp) {
       super.srId(srId)
         .title(title)
         .startAt(startAt)
@@ -258,6 +276,7 @@ public final class Rally {
         .total(total)
         .detail(detail)
         .status(status)
+        .completeCount(completeCount)
         .rewardTitle(rewardTitle)
         .rewardDetail(rewardDetail)
         .cp(cp);
@@ -301,6 +320,11 @@ public final class Rally {
     @Override
      public CopyOfBuilder status(Integer status) {
       return (CopyOfBuilder) super.status(status);
+    }
+    
+    @Override
+     public CopyOfBuilder completeCount(Integer completeCount) {
+      return (CopyOfBuilder) super.completeCount(completeCount);
     }
     
     @Override

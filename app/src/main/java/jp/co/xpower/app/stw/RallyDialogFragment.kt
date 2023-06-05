@@ -2,6 +2,8 @@ package jp.co.xpower.app.stw
 
 import android.app.Dialog
 import android.content.ContentValues.TAG
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -18,12 +20,17 @@ import com.google.android.material.snackbar.Snackbar
 import jp.co.xpower.app.stw.databinding.FragmentRallyDialogBinding
 import jp.co.xpower.app.stw.model.CommonData
 import jp.co.xpower.app.stw.model.CommonDataViewModel
+import jp.co.xpower.app.stw.model.DataStoreViewModel
+import jp.co.xpower.app.stw.model.StorageViewModel
+import jp.co.xpower.app.stw.util.StwUtils
+import java.io.File
+import java.util.concurrent.CompletableFuture
 
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+private const val ARG_PARAM1_CN_ID = "cnId"
+private const val ARG_PARAM1_SR_ID= "srId"
 
 /**
  * A simple [Fragment] subclass.
@@ -32,20 +39,46 @@ private const val ARG_PARAM2 = "param2"
  */
 class RallyDialogFragment : DialogFragment() {
     // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private var cnId: String? = null
+    private var srId: String? = null
     private lateinit var binding: FragmentRallyDialogBinding
+    var dismissListener: DialogDismissListener? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+            cnId = it.getString(ARG_PARAM1_CN_ID)
+            srId = it.getString(ARG_PARAM1_SR_ID)
         }
     }
     private val commonDataViewModel by lazy {
         ViewModelProvider(requireActivity())[CommonDataViewModel::class.java]
     }
+
+    private val dataStoreViewModel by lazy {
+        ViewModelProvider(requireActivity())[DataStoreViewModel::class.java]
+    }
+
+
+    private fun getOnlineImage(type: String) :Bitmap? {
+        var bitmap: Bitmap? = null
+
+        // ローカルストレージからラリー画像のロード
+        val imageName = "${cnId}_${srId}.png"
+        val dir = File("${requireContext().filesDir.absolutePath}/${type}")
+        val matchingFiles = dir.listFiles { file ->
+            file.isFile && file.path.contains(imageName, ignoreCase = true)
+        }
+        // 保存済み画像があればロード
+        val hit:Int = matchingFiles.size
+        if(hit != 0){
+            bitmap = BitmapFactory.decodeFile(matchingFiles[0].absolutePath)
+        }
+
+        return bitmap
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -53,29 +86,104 @@ class RallyDialogFragment : DialogFragment() {
 
         binding = FragmentRallyDialogBinding.inflate(layoutInflater)
 
+        val data = commonDataViewModel.dataCommonDataById(cnId!!, srId!!)
+
+        // ラリー画像
+        var bitmapRally: Bitmap? = getOnlineImage(StorageViewModel.IMAGE_DIR_RALLY)
+        if(bitmapRally != null){
+            binding.imgMain.setImageBitmap(bitmapRally)
+        }
+        else {
+            binding.imgMain.setImageResource(R.drawable.no_image)
+        }
+
+        // 景品画像
+        var bitmapReward: Bitmap? = getOnlineImage(StorageViewModel.IMAGE_DIR_REWARD)
+        if(bitmapReward != null){
+            binding.imgReward.setImageBitmap(bitmapReward)
+        }
+        else {
+            binding.imgReward.setImageResource(R.drawable.no_image)
+        }
+
+        // ラリータイトル
+        binding.textTitle.text = data!!.title
+
+        // ラリー詳細
+        binding.textDescription.text = data!!.detail
+
+        // 開催期間
+        if(data!!.startAt != 0L && data!!.endAt != 0L){
+            val startAt = StwUtils.formatUnixTime(data!!.startAt!!)
+            val endAt = StwUtils.formatUnixTime(data!!.endAt!!)
+            val textDate:String = binding.textDate.text.toString()
+            binding.textDate.text = textDate + startAt + " - " + endAt
+        }
+
+        // 参加判定
+        if(data!!.joinFlg){
+            binding.imgJoin.visibility = View.VISIBLE
+            binding.buttonJoin.text = resources.getString(R.string.button_select)
+        }
+        else {
+            binding.buttonJoin.text = resources.getString(R.string.button_join)
+        }
+
+        // 開催場所
+        if(data.place != null){
+            val textPlace:String = binding.textPlace.text.toString()
+            binding.textPlace.text = textPlace + data!!.place
+        }
+
+        // 報酬タイトル
+        binding.textReward.text = data!!.rewardTitle
+
+        if(data!!.completeFlg){
+            binding.buttonJoin.isEnabled = false
+            // 非活性
+            binding.buttonJoin.setBackgroundResource(R.drawable.button_gray)
+        }
+
+        // 選択・参加ボタン押下
         binding.buttonJoin.setOnClickListener {
-
-
-            //Log.d(TAG, commonDataViewModel.commonData.message)
-            //commonDataViewModel.commonData.message = "ok."
-
-
-            val textColor = resources.getColor(R.color.white, requireContext().theme)
-            val backgroundColor = resources.getColor(R.color.list_background_color, requireContext().theme)
-
-            val snackBar = Snackbar.make(requireView(), "参加しました。", Snackbar.LENGTH_SHORT)
-            snackBar.addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
-                override fun onShown(transientBottomBar: Snackbar?) {
-                    super.onShown(transientBottomBar)
-                }
-                override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
-                    super.onDismissed(transientBottomBar, event)
+            // 参加中のラリーの選択
+            if(data!!.joinFlg){
+                dismissListener?.onSelect(data.cnId, data.srId)
+                dismiss()
+            }
+            // 未参加のラリーには参加する
+            else {
+                commonDataViewModel.select(cnId!!, srId!!)
+                val completableFuture = dataStoreViewModel.rallyJoining(commonDataViewModel)
+                CompletableFuture.allOf(completableFuture).thenRun {
+                    dismissListener?.onSelect(cnId!!, srId!!)
                     dismiss()
                 }
-            })
-            snackBar.view.setBackgroundColor(backgroundColor);
-            snackBar.setTextColor(textColor)
-            snackBar.show()
+            }
+
+            /*
+            // test チェックポイント達成
+            val completableFuture2 = dataStoreViewModel.rallyStamping(commonDataViewModel, "p0001")
+            CompletableFuture.allOf(completableFuture2).thenRun {
+                val ret:Int = completableFuture2.get()
+                dismiss()
+            }
+            */
+
+
+
+            /*
+            //val completableFuture = dataStoreViewModel.updateAsyncTask(identityId, "c0004", "s0001", "p0005")
+            //val completableFuture = dataStoreViewModel.updateAsyncTask(identityId, data.cnId, data.srId, "p0001")
+            val completableFuture = dataStoreViewModel.updateAsyncTask(identityId, data.cnId, data.srId, "")
+            CompletableFuture.allOf(completableFuture).thenRun {
+                Log.i("STW", "Updated a ....")
+                dismissListener?.onDialogDismissed(data.cnId, data.srId)
+                dismiss()
+            }
+
+            */
+
         }
 
         binding.buttonClose.setOnClickListener {
@@ -115,21 +223,13 @@ class RallyDialogFragment : DialogFragment() {
     }
 
     companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment RallyDialogFragment.
-         */
-        // TODO: Rename and change types and number of parameters
         @JvmStatic
-        fun newInstance(param1: String, param2: String) =
+        fun newInstance(listener:RallyPublicFragment, cnId: String, srId: String) =
             RallyDialogFragment().apply {
+                dismissListener = listener
                 arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+                    putString(ARG_PARAM1_CN_ID, cnId)
+                    putString(ARG_PARAM1_SR_ID, srId)
                 }
             }
     }

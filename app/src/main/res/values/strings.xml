@@ -11,10 +11,14 @@
     <string name="stamp_get">スタンプの数</string>
     <string name="stamp_count">0/99</string>
     <string name="stamp_spot_name">校舎の屋上の奥の奥</string>
-    <string name="stamp_get_reward">報酬を獲得する</string>
+    <string name="stamp_get_reward">景品を獲得する</string>
+    <string name="stamp_got_reward">景品獲得済み</string>
     <string name="stamp_camera_qr_error">スタンプウォーズに対応していないQRが読み込まれました。</string>
 
     <string name="sys_button_close">閉じる</string>
+
+    <string name="button_join">参加する</string>
+    <string name="button_select">選択する</string>
 
     <string name="receive_msg_please">受付の方に画面を提示してください</string>
     <string name="receive_mas_warning">一度受付すると元には戻せません</string>
@@ -42,6 +46,15 @@
     <string name="ok">OK</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_terms">TermsActivity</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
 
     <string name="setting">設定</string>
     <string name="setting_profile">プロフィール設定</string>

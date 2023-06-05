@@ -49,5 +49,11 @@
                 "PHONE_NUMBER"
             ]
         }
+    },
+    "S3TransferUtility": {
+        "Default": {
+            "Bucket": "stw74f219dc163a42049a7db3eefc2dfbb5112016-develop",
+            "Region": "ap-northeast-1"
+        }
     }
 }

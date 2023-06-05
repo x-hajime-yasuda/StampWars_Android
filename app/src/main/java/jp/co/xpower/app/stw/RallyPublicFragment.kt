@@ -1,27 +1,41 @@
 package jp.co.xpower.app.stw
 
+import android.content.ContentValues
+import android.content.Context
+import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.amplifyframework.datastore.generated.model.StwCompany
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import jp.co.xpower.app.stw.databinding.*
+import jp.co.xpower.app.stw.model.CommonData
+import jp.co.xpower.app.stw.model.CommonDataViewModel
+import jp.co.xpower.app.stw.model.StorageViewModel
+import java.io.File
 
 
 // TODO: Rename parameter arguments, choose names that match
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
+interface DialogDismissListener {
+    fun onSelect(cnId:String, srId:String)
+    fun onDialogDismissed(cnId:String, srId:String)
+}
+
 /**
  * A simple [Fragment] subclass.
  * Use the [RallyPublicFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class RallyPublicFragment : Fragment(), RallyClickListener {
+class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListener {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var _binding: FragmentRallyPublicBinding? = null
@@ -42,6 +56,97 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
         }
     }
 
+    override fun onSelect(cnId:String, srId:String){
+
+        val rally = rallyList.find { it.cnId == cnId && it.srId == srId }
+
+        // 参加中表示に設定
+        val data = commonDataViewModel.dataCommonDataById(cnId!!, srId!!)
+        data!!.joinFlg = true
+
+        rally!!.joined = true
+
+        // まずは非選択に設定
+        rallyList.forEach { it.selected = false }
+
+        // 対象を選択済みにする
+        rally!!.selected = true
+
+        // 選択中のラリーを設定
+        val pref = requireContext().getSharedPreferences("STwPreferences", Context.MODE_PRIVATE)
+        pref.edit().putString(MainActivity.PREF_KEY_SELECT_CN_ID, cnId).apply()
+        pref.edit().putString(MainActivity.PREF_KEY_SELECT_SR_ID, srId).apply()
+
+        // CommonDataに選択中ラリーを設定
+        commonDataViewModel.select(cnId, srId)
+
+        activity?.runOnUiThread {
+            binding.recyclerView.adapter?.let { adapter ->
+                if (adapter is ItemAdapter) {
+                    //adapter.setData(rallyList)
+                    //adapter.notifyDataSetChanged()
+
+                    // MAP画面の選択状態を更新
+                    val mainActivity = requireActivity() as MainActivity
+                    //mainActivity.updateSelected()
+                    mainActivity.updateUser()
+
+                    // ボトムシートも閉じる
+                    val fragmentManager = requireActivity().supportFragmentManager
+                    val fragment = fragmentManager.findFragmentByTag("dialog") as? BottomSheetFragment
+                    fragment?.dismiss()
+                }
+            }
+        }
+    }
+
+    // ダイアログが閉じられたときに実行したい処理を記述
+    override fun onDialogDismissed(cnId:String, srId:String) {
+        Log.i("STW", "Auth session =")
+
+        // 未参加の場合参加フラグを設定する
+        val rally = rallyList.find { it.cnId == cnId && it.srId == srId }
+        rally!!.joined = true
+
+        // まずは非選択に設定
+        rallyList.forEach { it.selected = false }
+        // 対象を選択済みにする
+        rally!!.selected = true
+
+        // ViewModelも更新
+        var cb:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
+        cb!!.joinFlg = true
+
+        // 選択中のラリーを設定
+        val pref = requireContext().getSharedPreferences("STwPreferences", Context.MODE_PRIVATE)
+        pref.edit().putString(MainActivity.PREF_KEY_SELECT_CN_ID, cnId).apply()
+        pref.edit().putString(MainActivity.PREF_KEY_SELECT_SR_ID, srId).apply()
+
+        // CommonDataに選択中ラリーを設定
+        commonDataViewModel.select(cnId, srId)
+
+
+        activity?.runOnUiThread {
+            binding.recyclerView.adapter?.let { adapter ->
+                if (adapter is ItemAdapter) {
+                    adapter.setData(rallyList)
+                    adapter.notifyDataSetChanged()
+                    Log.i("STW", "end2.`")
+
+                    val mainActivity = requireActivity() as MainActivity
+                    mainActivity.updateSelected()
+
+                    // ボトムシートも閉じる
+                    val fragmentManager = requireActivity().supportFragmentManager
+                    val fragment = fragmentManager.findFragmentByTag("dialog") as? BottomSheetFragment
+                    fragment?.dismiss()
+                }
+            }
+        }
+
+
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -55,8 +160,40 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
         return binding.root
     }
 
+    private val commonDataViewModel by lazy {
+        ViewModelProvider(requireActivity())[CommonDataViewModel::class.java]
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         //populateStamp()
+
+        val pref = requireContext().getSharedPreferences("STwPreferences", Context.MODE_PRIVATE)
+        val selectCnId = pref.getString(MainActivity.PREF_KEY_SELECT_CN_ID, "")
+        val selectSrId = pref.getString(MainActivity.PREF_KEY_SELECT_SR_ID, "")
+
+        for(list in commonDataViewModel.commonDataList){
+            var selected:Boolean = false
+            if(selectCnId == list.cnId && selectSrId == list.srId){
+                selected = true
+            }
+
+            var rally = Rally(
+                list.cnId,
+                list.srId,
+                list.place,
+                list.title,
+                list.detail,
+                list.rewardTitle,
+                list.rewardDetail,
+                R.drawable.no_image,
+                joined = list.joinFlg,
+                selected = selected
+            )
+            rallyList.add(rally)
+        }
+
+
+
         binding.recyclerView.layoutManager = GridLayoutManager(context, 2)
         binding.recyclerView.adapter = ItemAdapter(rallyList, this)
 
@@ -70,22 +207,38 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
 
     }
 
-    private fun populateStamp() {
-        for (i in 1..9) {
-            var rally = Rally(
-                R.drawable.rally,
-                "学園祭 - %d".format(i),
-                "報酬未定\n報酬未定\n報酬未定\n"
-            )
-            rallyList.add(rally)
-        }
-    }
-
     private inner class ViewHolder internal constructor(private val binding: FragmentRallyListDialogItemBinding, private val clickListener: RallyClickListener) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bindRally(rally: Rally){
-            binding.cover.setImageResource(rally.cover)
+            if(rally.joined){
+                binding.joined.visibility = View.VISIBLE
+            }
+            if(rally.selected){
+                binding.selected.visibility = View.VISIBLE
+            }
+            else {
+                binding.selected.visibility = View.INVISIBLE
+            }
+
+            // ローカルストレージからラリー画像のロード
+            val imageName = "${rally.cnId}_${rally.srId}.png"
+            //val dir = requireContext().filesDir
+            val dir = File("${requireContext().filesDir.absolutePath}/${StorageViewModel.IMAGE_DIR_RALLY}")
+            val matchingFiles = dir.listFiles { file ->
+                file.isFile && file.path.contains(imageName, ignoreCase = true)
+            }
+            // 保存済み画像があればロード
+            val hit:Int = matchingFiles.size
+            if(hit != 0){
+                val bitmap = BitmapFactory.decodeFile(matchingFiles[0].absolutePath)
+                binding.cover.setImageBitmap(bitmap)
+            }
+            // 画像登録が無い場合はノーイメージを表示
+            else {
+                binding.cover.setImageResource(rally.cover)
+            }
+
             binding.title.text = rally.title
             //binding.description.text = rally.description      // 一覧では不要
             binding.cardView.setOnClickListener{
@@ -94,10 +247,14 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
         }
     }
     private inner class ItemAdapter internal constructor(
-        private val rallys: List<Rally>,
+        private var rallys: List<Rally>,
         private val clickListener: RallyClickListener
     ) :
         RecyclerView.Adapter<RallyPublicFragment.ViewHolder>() {
+
+        fun setData(r:List<Rally>){
+            rallys = r
+        }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
 
@@ -129,7 +286,9 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
     override fun onClick(rally: Rally) {
 
         // ラリー詳細表示
-        val dialog = RallyDialogFragment()
+        val dialog = RallyDialogFragment.newInstance(this, rally.cnId, rally.srId)
+        //val dialog = RallyDialogFragment()
+        //dialog.dismissListener = this
         dialog.show(parentFragmentManager, "custom_dialog")
     }
 
@@ -145,32 +304,7 @@ class RallyPublicFragment : Fragment(), RallyClickListener {
         @JvmStatic
         fun newInstance(param1: ArrayList<StwCompany>) =
             RallyPublicFragment().apply {
-
-
-                rallyList = mutableListOf<Rally>()
-
-                for(s in param1){
-                    println(s.id)
-                    var rally = Rally(
-                        R.drawable.rally,
-                        s.name,
-                        "報酬未定\n報酬未定\n報酬未定\n"
-                    )
-                    rallyList.add(rally)
-                }
-                /*
-                for (i in 1..9) {
-                    var rally = Rally(
-                        R.drawable.rally,
-                        "学園祭 - %d".format(i),
-                        "報酬未定\n報酬未定\n報酬未定\n"
-                    )
-                    rallyList.add(rally)
-                }
-                */
-
                 arguments = Bundle().apply {
-                    //putString(ARG_PARAM1, param1)
                 }
             }
     }

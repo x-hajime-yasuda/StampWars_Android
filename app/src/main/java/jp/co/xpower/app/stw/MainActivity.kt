@@ -1,11 +1,10 @@
 package jp.co.xpower.app.stw
 
-//import kotlinx.coroutines.async
-//import kotlinx.coroutines.launch
-
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.style.AbsoluteSizeSpan
@@ -13,6 +12,7 @@ import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -20,29 +20,52 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
+import aws.smithy.kotlin.runtime.util.length
+import com.amplifyframework.api.aws.AppSyncGraphQLRequest
+import com.amplifyframework.api.aws.GsonVariablesSerializer
+import com.amplifyframework.api.graphql.GraphQLRequest
+import com.amplifyframework.api.graphql.GraphQLResponse
+import com.amplifyframework.api.graphql.SimpleGraphQLRequest
+import com.amplifyframework.api.graphql.model.ModelQuery
 import com.amplifyframework.auth.AuthSession
 import com.amplifyframework.auth.cognito.AWSCognitoAuthSession
 import com.amplifyframework.core.Amplify
+import com.amplifyframework.core.Consumer
+import com.amplifyframework.core.model.Model
+import com.amplifyframework.core.model.query.ObserveQueryOptions
+import com.amplifyframework.core.model.query.Page.DEFAULT_LIMIT
+import com.amplifyframework.core.model.query.predicate.QueryPredicate
+import com.amplifyframework.core.model.temporal.Temporal
+import com.amplifyframework.datastore.*
 import com.amplifyframework.datastore.generated.model.CheckPoint
 import com.amplifyframework.datastore.generated.model.Complete
+import com.amplifyframework.datastore.generated.model.Rally
 import com.amplifyframework.datastore.generated.model.StwCompany
 import com.amplifyframework.datastore.generated.model.StwUser
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
 import jp.co.xpower.app.stw.databinding.ActivityMainBinding
+import jp.co.xpower.app.stw.databinding.CameraResultBinding
 import jp.co.xpower.app.stw.databinding.TermsOfServiceBinding
-import kotlinx.coroutines.*
-import java.util.ArrayList
-import java.io.FileInputStream
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.util.concurrent.CompletableFuture
-import androidx.lifecycle.ViewModelProvider
 import jp.co.xpower.app.stw.model.CommonData
 import jp.co.xpower.app.stw.model.CommonDataViewModel
+import jp.co.xpower.app.stw.model.DataStoreViewModel
+import jp.co.xpower.app.stw.util.StwUtils
+import kotlinx.coroutines.*
+import java.util.*
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
+
+import jp.co.xpower.app.stw.model.StorageViewModel
 
 
 class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
@@ -52,42 +75,50 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
     private lateinit var mapFragment: SupportMapFragment
     private lateinit var cameraLauncher: ActivityResultLauncher<Intent>
 
-    //private lateinit var user:UserData
-    private var identityId:String = ""
-    //private var aaaaaa:Int = 1
+    private var identityId:String? = null
+    private var identityNewId:String = ""
     private lateinit var stwUser:StwUser
     private lateinit var stwCompanys:ArrayList<StwCompany>
     private lateinit var companyList:ArrayList<StwCompany>
     private lateinit var loadingIndicator: ProgressBar
     private lateinit var mGestureDetector : GestureDetector
 
+    private var serverTime:Long = 0L
+
+    private val initLiveData = MutableLiveData<Boolean>()
+    private val markerList: MutableList<Marker> = mutableListOf()
+
+    private var isDataStoreInitialized = false
+
 
     companion object {
         const val  EXTRA_MESSAGE ="jp.co.xpower.app.stw.camera_activity.MESSAGE"
+        const val RALLY_STATE_PUBLIC = 1
+        const val RALLY_STATE_JOIN = 2
+        const val RALLY_STATE_END = 3
+
+        // 初期MAP座標(東大)
+        const val MAP_DEFAULT_LATITUDE = 35.712914101248444
+        const val MAP_DEFAULT_LONGITUDE = 139.76234881348526
+        const val MAP_ZOOM_LEVEL = 17.0f
+
+        const val PREF_KEY_USER_ID = "identity_id"
+        const val PREF_KEY_AGREE = "is_agree"
+        const val PREF_KEY_SELECT_CN_ID = "select_cn_id"
+        const val PREF_KEY_SELECT_SR_ID = "select_sr_id"
     }
 
-    // テストデータ作成
-    private fun populateStamp() {
-        for (i in 1..21) {
-            var stamp = Stamp(
-                R.drawable.sumi1,
-                "校舎の屋上の奥の奥に (%d)".format(i)
-            )
-            stampList.add(stamp)
-        }
-    }
 
-    private fun TextView.changeSizeOfText(target: String, size: Int){
+    private fun TextView.changeSizeOfText(target: String, other:String, size: Int){
 
         // 対象となる文字列を引数に渡し、SpannableStringBuilderのインスタンスを生成
-        val spannable = SpannableStringBuilder(target + "/99個")
+        val spannable = SpannableStringBuilder(target + "/${other}個")
 
         // Spanを組み込む
         spannable.setSpan(
             AbsoluteSizeSpan(size, true),
             0, // start
-            //target.length, // end
-            1, // end
+            target.length, // end
             Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
         )
 
@@ -97,145 +128,177 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 
     override fun onMarkerClick(marker: Marker): Boolean {
 
+        val m = marker.title
+
         return false
     }
 
-
+    // アプリ全体共通ビューモデル
     private val commonDataViewModel by lazy {
         ViewModelProvider(this)[CommonDataViewModel::class.java]
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    // データ連携(DB)用ビューモデル
+    private val dataStoreViewModel by lazy {
+        ViewModelProvider(this)[DataStoreViewModel::class.java]
+    }
 
-        // 初回起動時は規約ページを表示する
+    private val storageViewModel by lazy {
+        ViewModelProvider(this)[StorageViewModel::class.java]
+    }
+
+    // アプリ全体共通ビューモデルの設定処理
+    private fun updateDataViewModel(user:StwUser){
+        val commonDataList = ArrayList<CommonData>()
+        for (company in companyList) {
+            for (rally in company.rallyList) {
+
+                var startAt = 0L
+                if(rally.startAt != null){
+                    startAt = rally.startAt.secondsSinceEpoch
+                }
+
+                var endAt = 0L
+                if(rally.endAt != null){
+                    endAt = rally.endAt.secondsSinceEpoch
+                }
+
+                val common = CommonData()
+                common.cnId = company.id
+                common.srId = rally.srId
+                common.place = rally.place
+                common.title = rally.title
+                common.detail = rally.detail
+                common.rewardTitle = rally.rewardTitle
+                common.rewardDetail = rally.rewardDetail
+                common.startAt = startAt
+                common.endAt = endAt
+                common.state = 0 // todo 開催期間で判断
+                common.cp = rally.cp as ArrayList<CheckPoint>
+                common.joinFlg = false
+                common.completeFlg = false
+
+                if(serverTime in startAt..endAt){
+                    common.state = RALLY_STATE_PUBLIC    // 開催中
+                }
+
+                // チェックポイント数とユーザーデータのチェックポイント数の一致でラリー達成
+                if(user.complete != null){
+                    val cpTotal: Int = rally.cp.count()
+                    val complete = user.complete.find { it.cnId == company.id && it.srId == rally.srId }
+                    if (complete != null) {
+                        common.complete = complete
+                        common.joinFlg = true
+                        if(complete.got != null){
+                            common.got = complete.got
+                        }
+
+                        if(complete.cp != null){
+                            if(cpTotal == complete.cp.length){
+                                common.completeFlg = true
+                            }
+                        }
+                    }
+                }
+                commonDataList.add(common)
+            }
+        }
+
         val pref = getSharedPreferences("STwPreferences", Context.MODE_PRIVATE)
-        val isTos = pref.getBoolean("IS_TOS", false)
-        // 初回起動規約同意前
-        if(!isTos){
-            termsBinding = TermsOfServiceBinding.inflate(layoutInflater)
-            setContentView(termsBinding.root)
-            supportActionBar?.hide()
-            termsBinding.button.setOnClickListener {
-                Log.i("MainActivity Map ======>", "ready")
-                pref.edit().putBoolean("IS_TOS", true).apply()
-                val intent = Intent(this, MainActivity::class.java).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                startActivity(intent)
+        val selectCnId = pref.getString(PREF_KEY_SELECT_CN_ID, "")
+        val selectSrId = pref.getString(PREF_KEY_SELECT_SR_ID, "")
+        commonDataViewModel.select(selectCnId!!, selectSrId!!)
+
+        commonDataViewModel.identityId = identityId!!
+
+        commonDataViewModel.commonDataList = commonDataList
+    }
+
+    fun updateUser(){
+        val futureUser = dataStoreViewModel.getUser(identityId!!)
+        CompletableFuture.allOf(futureUser).thenRun {
+            val user = futureUser.get()
+            updateDataViewModel(user[0])
+            // メインビュー処理
+            val mainHandler = Handler(Looper.getMainLooper())
+            mainHandler.post {
+                // 選択中ラリーの表示更新
+                updateSelected()
             }
-            return
+        }
+    }
+
+    private fun startInitProcess(isAgree:Boolean) {
+
+        val pref = getSharedPreferences("STwPreferences", Context.MODE_PRIVATE)
+        identityId = pref.getString(PREF_KEY_USER_ID, "")
+
+        // 画像ダウンロード(ラリー・景品)
+        val futureRallyImage = storageViewModel.imageDownload(filesDir.absolutePath, StorageViewModel.IMAGE_DIR_RALLY)
+        val futureRewardImage = storageViewModel.imageDownload(filesDir.absolutePath, StorageViewModel.IMAGE_DIR_REWARD)
+        CompletableFuture.allOf(futureRallyImage, futureRewardImage).thenRun {
         }
 
+        val future = dataStoreViewModel.initDataStore()
+        CompletableFuture.allOf(future).thenRun {
+            Log.i("STW", "DataStore.initDataStore.")
 
+            val futureCompany = dataStoreViewModel.getCompany()
 
+            val futureUser = dataStoreViewModel.getUser(identityId!!)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+            if(isAgree) {
+                CompletableFuture.allOf(futureCompany, futureUser).thenRun {
+                    // 会社・ラリー情報
+                    val company = futureCompany.get()
+                    companyList = company.toList() as ArrayList<StwCompany>
 
-        // タイトルバー非表示
-        supportActionBar?.hide()
+                    // ユーザー情報
+                    val user = futureUser.get()
+                    updateDataViewModel(user[0])
 
+                    // メインビュー処理
+                    val mainHandler = Handler(Looper.getMainLooper())
+                    mainHandler.post {
+                        mainInitialize()
+                    }
 
-
-
-        identityId = readData()
-
-        val fetchSessionFuture = CompletableFuture<AuthSession>()
-        val companyQueryFuture = CompletableFuture<List<StwCompany>>()
-        val userQueryFuture = CompletableFuture<List<StwUser>>()
-
-        // ID認証開始
-        Amplify.Auth.fetchAuthSession(
-            { fetchSessionFuture.complete(it) },
-            { fetchSessionFuture.completeExceptionally(it) }
-        )
-        fetchSessionFuture.thenAccept { authSession ->
-            // 未認証ID取得
-            val cognitoAuthSession = authSession as AWSCognitoAuthSession
-            val id: String? = cognitoAuthSession.identityIdResult.value
-            // 初アクセス時のIDをユーザーIDとして使用する
-            if((identityId == null || identityId == "") && id != null){
-                identityId = id.toString()
-                saveData(identityId)
-                createData(identityId)
-            }
-            Log.i("STW", "Auth session = $authSession")
-
-            // データ同期開始
-            Amplify.DataStore.start(
-                {
-                    Amplify.DataStore.query(StwCompany::class.java,
-                        { companyQueryFuture.complete(it.asSequence().toList()) },
-                        { companyQueryFuture.completeExceptionally(it) }
-                    )
-                    Amplify.DataStore.query(StwUser::class.java, StwUser.ID.eq(identityId),
-                        { userQueryFuture.complete(it.asSequence().toList()) },
-                        { userQueryFuture.completeExceptionally(it) }
-                    )
-                },
-                { companyQueryFuture.completeExceptionally(it) }
-            )
-        }
-
-        CompletableFuture.allOf(companyQueryFuture, userQueryFuture).thenRun {
-            val query1Result = companyQueryFuture.get()
-            val users = userQueryFuture.get()
-
-            companyList = companyQueryFuture.get() as ArrayList<StwCompany>
-
-            val viewModel = ViewModelProvider(this)[CommonDataViewModel::class.java]
-            //viewModel.data.message = "test1"
-
-            // ラリー詳細とユーザーデータのマージ
-            var user:StwUser = users[0]
-
-            val companyes:ArrayList<StwCompany> = companyQueryFuture.get() as ArrayList<StwCompany>
-            for( company in companyes){
-                for( rally in company.rallyList){
-                    val common = CommonData()
-                    common.cnId = company.id
-                    common.srId = rally.srId
-                    common.srTitle = rally.title
-                    common.srState = 0 // todo 開催期間で判断
-                    common.srCp = rally.cp as ArrayList<CheckPoint>
-                    common.joinFlg = false
-                    common.completeFlg = false
-
-                    //val a = user.complete.find{ it.cnId == company.id && it.srId == rally.srId }
-                    //val aa = user.complete.find{ it.cnId == company.id && it.srId == rally.srId }
-
+                    // ローディング完了
+                    initLiveData.postValue(true)
                 }
             }
+            else {
+                CompletableFuture.allOf(futureCompany).thenRun {
+                    // 会社・ラリー情報
+                    val company = futureCompany.get()
+                    companyList = company.toList() as ArrayList<StwCompany>
+
+                    // ローディング完了
+                    initLiveData.postValue(true)
+                }
+
+            }
+        }
+    }
 
 
-            //commonDataViewModel.companyList = companyQueryFuture.get() as ArrayList<StwCompany>
+    override fun onCreate(savedInstanceState: Bundle?) {
 
+        // 初期処理状態
+        initLiveData.postValue(false)
 
-            //val d1 = query1Result[0].createdAt.toDate()
-
-            Log.i("STW", "All Ok.")
+        val splashScreen = installSplashScreen()
+        // スプラッシュ表示状態監視
+        splashScreen.setKeepOnScreenCondition {
+            !initLiveData.value!!
+        }
+        // スプラッシュクローズ待機
+        splashScreen.setOnExitAnimationListener { splashScreenView ->
+            // スプラッシュクローズ
+            splashScreenView.remove()
         }
 
-
-
-
-
-
-
-
-
-        // Map表示 Mapテスト時以外非活性
-        /*
-        mapFragment = supportFragmentManager.findFragmentById(R.id.map_fragment) as SupportMapFragment
-        mapFragment.getMapAsync {
-            Log.i("MainActivity Map ======>", "map.ready")
-            googleMap = it
-            googleMap.setOnMarkerClickListener(this)
-
-            val tokyo = LatLng(35.681167, 139.767052)
-            googleMap.addMarker(MarkerOptions().position(tokyo).title("東京駅"))
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(tokyo, 15f))
-        }
-        */
+        super.onCreate(savedInstanceState)
 
         // Camera結果の取得
         cameraLauncher = registerForActivityResult(
@@ -243,39 +306,247 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         ){ result ->
             if (result.resultCode == RESULT_OK) {
                 val text = result.data?.getStringExtra(MainActivity.EXTRA_MESSAGE) ?: ""
-                Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+                //Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+                // todo QRを解析して該当のラリーのチェックポイントを達成とする
+                // 獲得したらDB更新
+                /*
+                val pref = getSharedPreferences("STwPreferences", Context.MODE_PRIVATE)
+                val selectCnId = pref.getString(MainActivity.PREF_KEY_SELECT_CN_ID, "")
+                val selectSrId = pref.getString(MainActivity.PREF_KEY_SELECT_SR_ID, "")
 
-                binding.layoutStamp.layout.visibility = View.VISIBLE
+                // test
+                val cpId = "p0002"
 
+                val completableFuture = dataStoreViewModel.updateAsyncTask(identityId!!, selectCnId!!, selectSrId!!, cpId)
+                CompletableFuture.allOf(completableFuture).thenRun {
+                    // 達成したらcommonDataListに選択CommonDataのチェックポイントを追加する
+                    var cb:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selectCnId && it.srId == selectSrId }
+                    val point:CheckPoint = CheckPoint.builder().cpId(cpId).build()
+                    if(cb != null && cb!!.complete != null){
+                        cb!!.complete!!.cp.add(point)
+                    }
+
+                    // 選択中ラリーの表示更新
+                    updateSelected()
+                }
+                */
+
+                val cameraResultBinding = CameraResultBinding.inflate(layoutInflater)
+                cameraResultBinding.textView.text = "\n\nスタンプを獲得しました！\n\n"
+
+                // QA読込アラートダイアログの表示
                 val builder = AlertDialog.Builder(this)
-                builder.setView(layoutInflater.inflate(R.layout.camera_result, null))
+                builder.setView(cameraResultBinding.root)
                 val dialog = builder.create()
                 dialog!!.window!!.setBackgroundDrawableResource(android.R.color.transparent)
+                cameraResultBinding.positiveButton.setOnClickListener {
+                    dialog.dismiss()
+                }
+
                 dialog.show()
             }
         }
 
+        // 初回起動時は規約ページを表示する
+        val pref = getSharedPreferences("STwPreferences", Context.MODE_PRIVATE)
+        val isAgree = pref.getBoolean(PREF_KEY_AGREE, false)
+
+        // 初期データ取得
+        startInitProcess(isAgree)
+
+        // 初回起動規約同意前
+        if(!isAgree){
+            // 規約同意レイアウト表示
+            termsBinding = TermsOfServiceBinding.inflate(layoutInflater)
+            setContentView(termsBinding.root)
+            supportActionBar?.hide()
+            termsBinding.button.setOnClickListener {
+                Log.i("MainActivity Map ======>", "ready")
+
+                // 認証開始
+                val futureAuth = dataStoreViewModel.fetchAuth()
+                CompletableFuture.allOf(futureAuth).thenRun {
+                    identityId = futureAuth.get()
+                    Log.e("STW", "auth")
+                    val futureCreate = dataStoreViewModel.createUser(identityId!!, "名前未設定")
+                    CompletableFuture.allOf(futureCreate).thenRun {
+                        val user = futureCreate.get()
+                        // View更新
+                        updateDataViewModel(user)
+
+                        val mainHandler = Handler(Looper.getMainLooper())
+                        mainHandler.post {
+                            pref.edit().putString(PREF_KEY_USER_ID, identityId).apply()
+                            pref.edit().putBoolean(PREF_KEY_AGREE, true).apply()
+                            termsBinding.root.visibility = View.GONE
+
+                            // メインビュー処理
+                            mainInitialize()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getSelectId() :Pair<String, String>{
+        val pref = getSharedPreferences("STwPreferences", Context.MODE_PRIVATE)
+        val selectCnId = pref.getString(PREF_KEY_SELECT_CN_ID, "")
+        val selectSrId = pref.getString(PREF_KEY_SELECT_SR_ID, "")
+        return Pair(selectCnId!!, selectSrId!!)
+    }
+
+    fun isRewardReceived() :Boolean {
+        val selected = getSelectId()
+        var cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
+        return cd!!.got
+    }
+
+    fun updateSelected(){
+        val selected = getSelectId()
+        var cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
+        if(cd != null){
+            binding.layoutSelected.textTitle.text = cd.title
+
+            var completeCount:Int = 0
+
+            // 獲得スタンプ一覧作成
+            var list = mutableListOf<Stamp>()
+            for( cp in cd.cp){
+
+                var icon:Int = -1
+
+                if(cd.complete != null && cd.complete!!.cp != null) {
+                    completeCount = cd.complete!!.cp.count()
+
+                    var checkPoint:CheckPoint? = cd.complete!!.cp.find{it.cpId == cp.cpId}
+                    if(checkPoint != null){
+                        icon = R.drawable.stamp_icon
+                    }
+                }
+
+                var stamp = Stamp(
+                    icon,
+                    cp?.cpName
+                )
+                list.add(stamp)
+            }
+            binding.layoutStamp.recyclerView.apply {
+                layoutManager = GridLayoutManager(context, 4)
+                adapter = StampAdapter(list)
+            }
+
+            // MAP更新
+            updateMap()
+
+            // 獲得数だけ強調表示
+            binding.layoutStamp.textGet.changeSizeOfText(completeCount.toString(), cd.cp.count().toString(),38)
+            val mainHandler = Handler(Looper.getMainLooper())
+            mainHandler.post {
+                binding.tvStampCount.text = "${completeCount}/${cd.cp.count()}"
+                // ラリー選択バー表示
+                binding.btStampList.visibility = View.VISIBLE
+                binding.tvStamp.visibility = View.VISIBLE
+                binding.layoutSelected.layout.visibility = View.VISIBLE
+            }
+        }
+        else {
+            // ラリー選択バー非表示
+            binding.btStampList.visibility = View.INVISIBLE
+            binding.tvStamp.visibility = View.INVISIBLE
+            binding.layoutSelected.layout.visibility = View.INVISIBLE
+        }
+    }
+
+    private fun updateMap() {
+        if (::googleMap.isInitialized) {
+
+            // マーカー削除
+            for(marker in markerList){
+                marker.remove()
+            }
+            markerList.clear()
+
+            val selected = getSelectId()
+            var cd:CommonData? = commonDataViewModel.commonDataList.find { res -> res.cnId == selected.first && res.srId == selected.second }
+            if(cd != null){
+                for(checkpoint in cd!!.cp){
+                    val latLng = LatLng(checkpoint.latitude.toDouble(), checkpoint.longitude.toDouble())
+                    val m = googleMap.addMarker(MarkerOptions().position(latLng).title(checkpoint.cpName))
+                    markerList.add(m!!)
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
+                }
+            }
+            // 未選択(初期表示位置)
+            else {
+                val latLng = LatLng(MAP_DEFAULT_LATITUDE, MAP_DEFAULT_LONGITUDE)
+                val m = googleMap.addMarker(MarkerOptions().position(latLng).title("東京大学"))
+                markerList.add(m!!)
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
+            }
+        }
+        else{
+            // マップが初期化されるまで待機する
+            Handler(Looper.getMainLooper()).postDelayed({
+                updateMap()
+            }, 1000)
+        }
+    }
+
+    private fun mainInitialize(){
+        // メインレイアウト設定
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        // タイトルバー非表示
+        supportActionBar?.hide()
+
+        // Map表示 Mapテスト時以外非活性
+        //*
+        mapFragment = supportFragmentManager.findFragmentById(R.id.map_fragment) as SupportMapFragment
+        mapFragment.getMapAsync {
+            Log.i("STW", "GoogleMap ready.")
+            //mapViewModel.initializeMap(it)
+
+            googleMap = it
+            googleMap.setOnMarkerClickListener(this)
+
+            // できるだけ早くMAP位置を設定しないと世界地図が表示されてしまう。
+            val latLng = LatLng(MAP_DEFAULT_LATITUDE, MAP_DEFAULT_LONGITUDE)
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
+
+            /*
+            // 初回の位置設定
+            val selected = getSelectId()
+            var cd:CommonData? = commonDataViewModel.commonDataList.find { res -> res.cnId == selected.first && res.srId == selected.second }
+
+            markerList.clear()
+
+            if(cd != null){
+                //mapViewModel.setCheckPoints(cd.cp, cd.complete)
+                for(checkpoint in cd.cp){
+                    val latLng = LatLng(checkpoint.latitude.toDouble(), checkpoint.longitude.toDouble())
+                    val m = googleMap.addMarker(MarkerOptions().position(latLng).title(checkpoint.cpName))
+                    markerList.add(m!!)
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
+                }
+            }
+            // 未選択(初期表示位置)
+            else {
+                val latLng = LatLng(MAP_DEFAULT_LATITUDE, MAP_DEFAULT_LONGITUDE)
+                val m = googleMap.addMarker(MarkerOptions().position(latLng).title("東京大学"))
+                markerList.add(m!!)
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
+            }
+            */
+
+        }
+
+        // 選択中ラリーの表示更新
+        updateSelected()
+
         // スタンプ表示切り替え
         binding.btStampList.setOnClickListener(OnButtonClick())
-        /*
-        binding.buttonStamp.setOnClickListener {
-            val layout = binding.layoutStamp
-            if(layout.layout.visibility == View.VISIBLE){
-                layout.layout.visibility = View.GONE
-            }
-            else {
-                layout.layout.visibility = View.VISIBLE
-            }
-        }
-        */
-
-        // テストデータ設定
-        populateStamp()
-        // スタンプデータ設定
-        binding.layoutStamp.recyclerView.apply {
-            layoutManager = GridLayoutManager(context, 4)
-            adapter = StampAdapter(stampList)
-        }
 
         // 報酬獲得画面の表示
         binding.layoutStamp.buttonReward.setOnClickListener(OnButtonClick())
@@ -293,9 +564,21 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         // 報酬受け取り完了画面の表示
         binding.layoutReward.swReceiveReward.setOnCheckedChangeListener { buttonView, isChecked ->
             if(isChecked){
-                binding.layoutReward.layout.visibility = View.GONE
-                binding.layoutReceived.layout.visibility = View.VISIBLE
-                binding.layoutReward.swReceiveReward.isClickable = false
+                val selected = getSelectId()
+                val completableFuture = dataStoreViewModel.updateRewardAsyncTask(identityId!!, selected.first, selected.second, true)
+                CompletableFuture.allOf(completableFuture).thenRun {
+
+                    // ViewModel更新
+                    var cb:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
+                    cb!!.got = true
+
+                    val mainHandler = Handler(Looper.getMainLooper())
+                    mainHandler.post {
+                        binding.layoutReward.layout.visibility = View.GONE
+                        binding.layoutReceived.layout.visibility = View.VISIBLE
+                        binding.layoutReward.swReceiveReward.isClickable = false
+                    }
+                }
             }
         }
         mGestureDetector = GestureDetector(this@MainActivity, MGestureListener())
@@ -306,197 +589,55 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         binding.layoutReward.buttonClose.setOnClickListener(OnButtonClick())
         binding.layoutReceived.buttonClose.setOnClickListener(OnButtonClick())
 
-
-
-
-        // 獲得数だけ強調表示
-        binding.layoutStamp.textGet.changeSizeOfText("3", 38)
-
-
-
         // ボトムメニュー ボタンイベント
         binding.bottomNavigation.setOnItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.menu_home -> {
                     // ボトムシート表示
-                    val aa = ArrayList<StwCompany>()
                     BottomSheetFragment.newInstance(companyList).show(supportFragmentManager, "dialog")
-
-                    // ユーザーデータ
-                    /*
-                    Amplify.DataStore.query(StwUser::class.java, StwUser.ID.eq(identityId),
-                        { matches ->
-                            if (matches.hasNext()) {
-                                val post = matches.next()
-                                Log.i("STW", "id: ${post.id}")
-                                Log.i("STW", "name: ${post.name}")
-                                for(c in post.complete){
-                                    Log.i("STW", "name: ${c.cnId}")
-                                    Log.i("STW", "name: ${c.srId}")
-                                    for(cp in c.cp){
-                                        Log.i("STW", "name: ${cp.cpId}")
-                                    }
-                                }
-                            }
-                        },
-                        { Log.e("MyAmplifyApp", "Query failed.", it) }
-                    )
-                    */
-
-
-
-
-
 
                     true
                 }
                 R.id.menu_profile -> {
                     val intent = Intent(this, CameraActivity::class.java)
-                    //startActivity(intent)
                     cameraLauncher.launch(intent)
 
-                    // 同期
-                    /*
-                    Amplify.addPlugin(
-                        AWSDataStorePlugin.builder().dataStoreConfiguration(
-                        DataStoreConfiguration.builder()
-                            .syncExpression(StwUser::class.java) { StwUser.ID.eq("u0001") }
-                            .build())
-                        .build())
-                    */
-
-
 
                     /*
-                    // 更新(取得してあれば)
-                    Amplify.DataStore.query(StwUser::class.java, StwUser.ID.eq("u0001"),
-                        { matches ->
-                            if (matches.hasNext()) {
-                                val original = matches.next()
-                                val edited = original.copyOfBuilder()
-                                    .name("New Title $aaaaaa")
-                                    .build()
-                                Amplify.DataStore.save(edited,
-                                    { Log.i("MyAmplifyApp", "Updated a post") },
-                                    { Log.e("MyAmplifyApp", "Update failed", it) }
-                                )
-                            }
-                        },
-                        { Log.e("MyAmplifyApp", "Query failed", it) }
-                    )
-                    aaaaaa += 1
-                    */
-
-                    //createData("aaaaaaaaaa")
-
-
-                    /*
-                    // 削除
-                    Amplify.DataStore.query(StwUser::class.java, StwUser.ID.eq("u0001"),
-                        { matches ->
-                            if (matches.hasNext()) {
-                                val post = matches.next()
-                                Amplify.DataStore.delete(post,
-                                    { Log.i("STW", "Deleted a user.") },
-                                    { Log.e("STW", "Delete failed.", it) }
-                                )
-                            }
-                        },
-                        { Log.e("STW", "Query failed.", it) }
-                    )
-                    */
-
-
-
-
-
-                    /*
-                    Amplify.DataStore.observe(
-                        StwUser::class.java,
-                        { Log.i("MyAmplifyApp", "Observation began") },
+                    Amplify.API.query(qrRequest("Z0FBQUFBQmtkYlFVNnBsRHdveXlTN0Zfa1NxU2JQeDZxWFVPRXhTTUpvbnNZUzluU0dzZVBlOS04czJUTzV6cVZva25Tb1ZFY3FtTEJ4dHp1YUZ5ZWNBMmhKVHk3aXJKQ1YzLVlNbmxjbldRbUhwTDBxVFQ3TFE9@6e424c5469356d44494d59586b326e6b484c416c37344a3437785364393470355f444538436643584276553d"),
                         {
-                            // only listen for incoming messages sent to the logged in user
-                            Log.i("MyAmplifyApp", "Message: ${it.item().name}")
+                            Log.d("MyAmplifyApp", "Response = $it")
                         },
-                        { Log.e("ChatLog-Listen", "Observation failed", it) },
-                        { Log.i("ChatLog-Listen", "Observation complete") }
+                        {
+                            Log.e("MyAmplifyApp", "Error!", it)
+                        }
                     )
                     */
-
-                    /* // 取得できるサンプル
-                    val predicate: QueryPredicate = StwUser.ID.eq("u0001")
-
-                    val onQuerySnapshot: Consumer<DataStoreQuerySnapshot<StwUser>> =
-                        Consumer<DataStoreQuerySnapshot<StwUser>> { value: DataStoreQuerySnapshot<StwUser> ->
-                            val post = value.items[0]
-                            Log.i("MyAmplifyApp", "Message: $post")
-                        }
-                    val observationStarted =
-                        Consumer { _: Cancelable ->
-                            Log.i("MyAmplifyApp", "Message: cancelable")
-                        }
-                    val onObservationError =
-                        Consumer { value: DataStoreException ->
-                            Log.i("MyAmplifyApp", "Message: $value")
-                        }
-                    val onObservationComplete = Action {
-                    }
-
-                    val options = ObserveQueryOptions(predicate, null)
-                    Amplify.DataStore.observeQuery(
-                        StwUser::class.java,
-                        options,
-                        observationStarted,
-                        onQuerySnapshot,
-                        onObservationError,
-                        onObservationComplete
-                    )
-                    */
-
-
-
-
-
-
 
                     /*
-                    Amplify.DataStore.query(StwUser::class.java,
-                        { allPosts ->
-                            while (allPosts.hasNext()) {
-                                val post = allPosts.next()
-                                Log.i("MyAmplifyApp", "Name: ${post.name}")
-                            }
+                    Amplify.API.query(serverTimeRequest(),
+                        {
+                            Log.d("MyAmplifyApp", "Response = $it")
                         },
-                        { Log.e("MyAmplifyApp", "Query failed", it) }
+                        {
+                            Log.e("MyAmplifyApp", "Error!", it)
+                        }
                     )
                     */
-                    /*
-                    Amplify.DataStore.query(StwUser::class.java,
-                        { todos ->
-                            while (todos.hasNext()) {
-                                val todo: StwUser = todos.next()
-                                Log.i("Tutorial", "==== Todo ====")
-                                Log.i("Tutorial", "Name: ${todo.name}")
-                            }
-                        },
-                        { Log.e("Tutorial", "Could not query DataStore", it)  }
-                    )
-                    */
-
-
 
                     true
                 }
+
                 /*
                 R.id.menu_profile2 -> {
-                    updateRally(identityId, "c0001", "s0001", "p0002")
-
-                    //val clen = stwCompanys.length
-                    //Log.e("Tutorial", clen.toString())
+                    // クリアテスト
+                    Amplify.DataStore.clear(
+                        { Log.i("MyAmplifyApp", "DataStore is cleared") },
+                        { Log.e("MyAmplifyApp", "Failed to clear DataStore") }
+                    )
                     true
                 }
                 */
-
 
                 else -> false
             }
@@ -508,6 +649,33 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             startActivity(intent2UserSetting)
         }
     }
+
+    /*
+    * in: 読み取ったQRコード
+    * return: QRコードデコードリクエスト
+    * */
+    private fun qrRequest(text:String): GraphQLRequest<String> {
+        val document = ("query getQRDecode(\$qr: String) { "
+                + "getQRDecode(qr: \$qr) "
+                + "}")
+        return SimpleGraphQLRequest(
+            document,
+            mapOf("qr" to text),
+            String::class.java,
+            GsonVariablesSerializer())
+    }
+
+    private fun serverTimeRequest(): GraphQLRequest<String> {
+        val document = ("query getMyData { "
+                + "getMyData "
+                + "}")
+        return SimpleGraphQLRequest(
+            document,
+            mapOf("id" to "abc"),
+            String::class.java,
+            GsonVariablesSerializer())
+    }
+
 
     private inner class SwTouchListener : View.OnTouchListener {
         override fun onTouch(v: View, event: MotionEvent): Boolean {
@@ -545,6 +713,20 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                         bgLayout.visibility = View.GONE
                     }
                     else {
+                        val received = isRewardReceived()
+                        if(received){
+                            binding.layoutStamp.buttonReward.text = resources.getText(R.string.stamp_got_reward)
+                            binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_gray)
+                            binding.layoutStamp.buttonReward.isEnabled = false
+                        }
+                        else {
+                            binding.layoutReward.swReceiveReward.isChecked = false
+                            binding.layoutReward.swReceiveReward.isClickable = true
+                            binding.layoutStamp.buttonReward.text = resources.getText(R.string.stamp_get_reward)
+                            binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_ripple)
+                            binding.layoutStamp.buttonReward.isEnabled = true
+                        }
+
                         stampLayout.visibility = View.VISIBLE
                         bgLayout.visibility = View.VISIBLE
                     }
@@ -556,19 +738,34 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                     receivedLayout.visibility = View.GONE
                     stampLayout.visibility = View.VISIBLE
                     btStampList.isClickable = true
+                    // 獲得済み判定
+                    val received = isRewardReceived()
+                    if(received){
+                        binding.layoutStamp.buttonReward.text = resources.getText(R.string.stamp_got_reward)
+                        binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_gray)
+                        binding.layoutStamp.buttonReward.isEnabled = false
+                    }
+                    else {
+                        binding.layoutStamp.buttonReward.text = resources.getText(R.string.stamp_get_reward)
+                        binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_ripple)
+                        binding.layoutStamp.buttonReward.isEnabled = true
+                    }
                 }
 
                 // 報酬獲得画面を表示
                 R.id.button_reward -> {
                     btStampList.isClickable = false
                     stampLayout.visibility = View.GONE
-                    if(!binding.layoutReward.swReceiveReward.isChecked){
-                        // 報酬未受取の場合は受取画面を表示
-                        rewardLayout.visibility = View.VISIBLE
-                    }
-                    else {
+
+                    val received = isRewardReceived()
+                    if(received){
+                    //if(!binding.layoutReward.swReceiveReward.isChecked){
                         // 報酬受取済の場合は受取完了画面を表示
                         receivedLayout.visibility = View.VISIBLE
+                    }
+                    else {
+                        // 報酬未受取の場合は受取画面を表示
+                        rewardLayout.visibility = View.VISIBLE
                     }
 
                 }
@@ -584,208 +781,4 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             }
         }
     }
-
-
-    /*
-    // ユーザーデータ取得
-    private fun observeUser() {
-        val onQuerySnapshot: Consumer<DataStoreQuerySnapshot<StwUser>> =
-            Consumer<DataStoreQuerySnapshot<StwUser>> { value: DataStoreQuerySnapshot<StwUser> ->
-                val u = value.items
-                if(u.length == 1){
-                    stwUser = u[0]
-                    Log.e("STW", "${u[0].name}")
-                }
-            }
-        val observationStarted =
-            Consumer { _: Cancelable ->
-            }
-        val onObservationError =
-            Consumer { value: DataStoreException ->
-            }
-        val onObservationComplete = Action {
-        }
-
-        val predicate: QueryPredicate = StwUser.ID.eq("ap-northeast-1:275a1926-c177-46a6-9f51-0e40d01f03f5")
-        val options = ObserveQueryOptions(predicate, null)
-        Amplify.DataStore.observeQuery(
-            StwUser::class.java,
-            options,
-            observationStarted,
-            onQuerySnapshot,
-            onObservationError,
-            onObservationComplete
-        )
-    }
-
-    private fun observeCompany() {
-        Amplify.DataStore.query(StwCompany::class.java,
-            { matches ->
-                if (matches.hasNext()) {
-                    val post = matches.next()
-                    Log.e("STW", "Query Company.")
-                }
-            },
-            { Log.e("STW", "Query Company.", it) }
-        )
-
-        val onQuerySnapshot: Consumer<DataStoreQuerySnapshot<StwCompany>> =
-            Consumer<DataStoreQuerySnapshot<StwCompany>> { value: DataStoreQuerySnapshot<StwCompany> ->
-                if(value.items.length == 0){
-                    return@Consumer
-                }
-                stwCompanys = ArrayList<StwCompany>()
-                for(list in value.items){
-                    Log.e("STW", "${list.name}")
-                    stwCompanys.add(list)
-                }
-                Log.e("STW", "${stwCompanys.length}")
-            }
-        val observationStarted =
-            Consumer { _: Cancelable ->
-            }
-        val onObservationError =
-            Consumer { value: DataStoreException ->
-            }
-        val onObservationComplete = Action {
-        }
-
-        //val predicate: QueryPredicate = StwCompany.ID.eq("ap-northeast-1:275a1926-c177-46a6-9f51-0e40d01f03f5")
-        //val options = ObserveQueryOptions(predicate, null)
-        val options = ObserveQueryOptions()
-        Amplify.DataStore.observeQuery(
-            StwCompany::class.java,
-            options,
-            observationStarted,
-            onQuerySnapshot,
-            onObservationError,
-            onObservationComplete
-        )
-    }
-    */
-
-    // cnId: 会社ID
-    // srId: ラリーID
-    // cpId: チェックポイントID
-    private fun updateRally(id:String, cnId:String, srId:String, cpId:String){
-        Amplify.DataStore.query(StwUser::class.java, StwUser.ID.eq(id),
-            { matches ->
-                if (matches.hasNext()) {
-                    val original = matches.next()
-
-                    var completeData:ArrayList<Complete> = ArrayList<Complete>()
-
-                    // 新規
-                    if(original.complete == null){
-                        var checkPointList:ArrayList<CheckPoint> = ArrayList<CheckPoint>()
-                        val cp:CheckPoint = CheckPoint.builder().cpId(cpId).build()
-                        checkPointList.add(cp)
-                        val c: Complete = Complete.builder().cnId(cnId).srId(srId).history(0).cp(checkPointList).build()
-                        completeData.add(c)
-                    }
-                    else {
-                        var isExist = false
-                        completeData = original.complete as ArrayList<Complete>
-                        completeData.forEach { element ->
-                            // 既存の会社・ラリーの達成
-                            if( element.cnId == cnId && element.srId == srId ){
-                                val cp:CheckPoint = CheckPoint.builder().cpId(cpId).build()
-                                element.cp.add(cp)
-                                isExist = true
-                            }
-                        }
-                        // 既存の会社・ラリー以外の達成の場合
-                        if(!isExist){
-                            var checkPointList:ArrayList<CheckPoint> = ArrayList<CheckPoint>()
-                            val cp:CheckPoint = CheckPoint.builder().cpId(cpId).build()
-                            checkPointList.add(cp)
-                            val c: Complete = Complete.builder().cnId(cnId).srId(srId).history(0).cp(checkPointList).build()
-                            completeData.add(c)
-                        }
-                    }
-
-                    val edited = original.copyOfBuilder()
-                        .complete(completeData)
-                        .build()
-
-                    Amplify.DataStore.save(edited,
-                        { Log.i("STW", "Updated a user") },
-                        { Log.e("STW", "Update failed", it) }
-                    )
-                }
-            },
-            { Log.e("STW", "Query failed", it) }
-        )
-
-    }
-
-    // スタンプラリー状況更新
-    private fun updateData(id:String, complete:ArrayList<Complete>){
-
-        Amplify.DataStore.query(StwUser::class.java, StwUser.ID.eq(id),
-            { matches ->
-                if (matches.hasNext()) {
-                    val original = matches.next()
-                    val edited = original.copyOfBuilder()
-                        .complete(complete)
-                        .build()
-
-                    Amplify.DataStore.save(edited,
-                        { Log.i("STW", "Updated a user") },
-                        { Log.e("STW", "Update failed", it) }
-                    )
-                }
-            },
-            { Log.e("STW", "Query failed", it) }
-        )
-    }
-
-    // 初回ユーザーアカウント作成
-    private fun createData(id:String){
-        Amplify.DataStore.query(StwUser::class.java, StwUser.ID.eq(id),
-            { matches ->
-                if (!matches.hasNext()) {
-                    Log.i("STW", "create.")
-                    val user = StwUser.builder()
-                        .id(id)
-                        .name("名前未設定")
-                        .build()
-                    Amplify.DataStore.save(user,
-                        { Log.i("STW", "Saved a user") },
-                        { Log.e("STW", "Save failed", it) }
-                    )
-
-                }
-            },
-            { Log.e("STW", "Query failed.", it) }
-        )
-    }
-
-    private fun readData(): String {
-        val fileName = "app.dat"
-        var text:String = ""
-
-        try {
-            val stream: FileInputStream = openFileInput(fileName)
-            val data = stream.readBytes().decodeToString()
-            stream.close()
-            text = data
-        }
-        catch (e: FileNotFoundException){
-
-        }
-        catch (e:IOException){
-            e.printStackTrace()
-        }
-
-        return text
-    }
-
-    private fun saveData(id:String){
-        val fileName = "app.dat"
-        openFileOutput(fileName, Context.MODE_PRIVATE).use {
-            it.write(id.toByteArray())
-        }
-    }
-
 }
