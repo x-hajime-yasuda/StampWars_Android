@@ -68,7 +68,7 @@ class RewardFragment : Fragment(), RewardClickListener {
                 "",
                 "",
                 "",
-                R.drawable.rally,
+                R.drawable.no_image,
                 joined = false,
                 selected = false
             )

@@ -1,19 +1,14 @@
 package jp.co.xpower.app.stw
 
+import java.io.File
 import android.app.Application
 import android.util.Log
-import androidx.lifecycle.ViewModelProvider
 import com.amplifyframework.AmplifyException
 import com.amplifyframework.api.aws.AWSApiPlugin
 import com.amplifyframework.core.Amplify
 import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin
 import com.amplifyframework.datastore.AWSDataStorePlugin
 import com.amplifyframework.storage.s3.AWSS3StoragePlugin
-
-import com.amplifyframework.datastore.DataStoreConfiguration
-import com.amplifyframework.datastore.generated.model.StwUser
-import jp.co.xpower.app.stw.model.StorageViewModel
-import java.io.File
 
 class AmplifyApp: Application() {
     override fun onCreate() {
@@ -37,7 +32,6 @@ class AmplifyApp: Application() {
         }
     }
 
-
     /*
     * 各画像を保存するディレクトリの作成
     */
@@ -50,6 +44,5 @@ class AmplifyApp: Application() {
         if (!rewardDir.exists()) {
             rewardDir.mkdir()
         }
-
     }
 }

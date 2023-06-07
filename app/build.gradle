@@ -69,7 +69,7 @@ dependencies {
     implementation "androidx.camera:camera-view:${camerax_version}"
     implementation "androidx.camera:camera-extensions:${camerax_version}"
 
-    implementation 'com.amplifyframework:core:2.6.0'
+    implementation 'com.amplifyframework:core:2.8.4'
     implementation 'com.amplifyframework:aws-api:2.6.0'
     implementation 'com.amplifyframework:aws-auth-cognito:2.6.0'
     implementation 'com.amplifyframework:aws-datastore:2.6.0'
@@ -78,5 +78,4 @@ dependencies {
     implementation 'commons-net:commons-net:3.8.0'
 
     implementation "androidx.core:core-splashscreen:1.0.0"
-
 }

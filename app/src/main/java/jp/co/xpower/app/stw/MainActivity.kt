@@ -12,10 +12,8 @@ import android.util.Log
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
-import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -25,25 +23,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import aws.smithy.kotlin.runtime.util.length
-import com.amplifyframework.api.aws.AppSyncGraphQLRequest
-import com.amplifyframework.api.aws.GsonVariablesSerializer
-import com.amplifyframework.api.graphql.GraphQLRequest
-import com.amplifyframework.api.graphql.GraphQLResponse
-import com.amplifyframework.api.graphql.SimpleGraphQLRequest
-import com.amplifyframework.api.graphql.model.ModelQuery
-import com.amplifyframework.auth.AuthSession
-import com.amplifyframework.auth.cognito.AWSCognitoAuthSession
-import com.amplifyframework.core.Amplify
-import com.amplifyframework.core.Consumer
-import com.amplifyframework.core.model.Model
-import com.amplifyframework.core.model.query.ObserveQueryOptions
-import com.amplifyframework.core.model.query.Page.DEFAULT_LIMIT
-import com.amplifyframework.core.model.query.predicate.QueryPredicate
-import com.amplifyframework.core.model.temporal.Temporal
-import com.amplifyframework.datastore.*
 import com.amplifyframework.datastore.generated.model.CheckPoint
-import com.amplifyframework.datastore.generated.model.Complete
-import com.amplifyframework.datastore.generated.model.Rally
 import com.amplifyframework.datastore.generated.model.StwCompany
 import com.amplifyframework.datastore.generated.model.StwUser
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -56,16 +36,14 @@ import com.google.android.gms.maps.model.MarkerOptions
 import jp.co.xpower.app.stw.databinding.ActivityMainBinding
 import jp.co.xpower.app.stw.databinding.CameraResultBinding
 import jp.co.xpower.app.stw.databinding.TermsOfServiceBinding
-import jp.co.xpower.app.stw.model.CommonData
-import jp.co.xpower.app.stw.model.CommonDataViewModel
-import jp.co.xpower.app.stw.model.DataStoreViewModel
-import jp.co.xpower.app.stw.util.StwUtils
 import kotlinx.coroutines.*
-import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 
-import jp.co.xpower.app.stw.model.StorageViewModel
+import jp.co.xpower.app.stw.model.*
+
+import kotlinx.serialization.json.*
+import kotlin.collections.ArrayList
 
 
 class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
@@ -93,9 +71,10 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 
     companion object {
         const val  EXTRA_MESSAGE ="jp.co.xpower.app.stw.camera_activity.MESSAGE"
-        const val RALLY_STATE_PUBLIC = 1
-        const val RALLY_STATE_JOIN = 2
-        const val RALLY_STATE_END = 3
+        const val RALLY_STATE_ALL = 0       // すべて
+        const val RALLY_STATE_PUBLIC = 1    // 開催中
+        const val RALLY_STATE_JOIN = 2      // 参加中
+        const val RALLY_STATE_END = 3       // 終了済み
 
         // 初期MAP座標(東大)
         const val MAP_DEFAULT_LATITUDE = 35.712914101248444
@@ -143,9 +122,16 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         ViewModelProvider(this)[DataStoreViewModel::class.java]
     }
 
+    // 画像連携用ビューモデル
     private val storageViewModel by lazy {
         ViewModelProvider(this)[StorageViewModel::class.java]
     }
+
+    // Lambda用ビューモデル
+    private val functionViewModel by lazy {
+        ViewModelProvider(this)[FunctionViewModel::class.java]
+    }
+
 
     // アプリ全体共通ビューモデルの設定処理
     private fun updateDataViewModel(user:StwUser){
@@ -173,6 +159,9 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                 common.rewardDetail = rally.rewardDetail
                 common.startAt = startAt
                 common.endAt = endAt
+
+                val serverTime = commonDataViewModel.serverTime
+
                 common.state = 0 // todo 開催期間で判断
                 common.cp = rally.cp as ArrayList<CheckPoint>
                 common.joinFlg = false
@@ -180,6 +169,9 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 
                 if(serverTime in startAt..endAt){
                     common.state = RALLY_STATE_PUBLIC    // 開催中
+                }
+                else {
+                    common.state = RALLY_STATE_END    // 終了済み
                 }
 
                 // チェックポイント数とユーザーデータのチェックポイント数の一致でラリー達成
@@ -231,6 +223,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
     private fun startInitProcess(isAgree:Boolean) {
 
         val pref = getSharedPreferences("STwPreferences", Context.MODE_PRIVATE)
+
         identityId = pref.getString(PREF_KEY_USER_ID, "")
 
         // 画像ダウンロード(ラリー・景品)
@@ -239,13 +232,24 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         CompletableFuture.allOf(futureRallyImage, futureRewardImage).thenRun {
         }
 
+        // サーバータイム取得
+        val futureFunction = functionViewModel.callFunction(FunctionViewModel.FUNCTION_TIME, "")
+
         val future = dataStoreViewModel.initDataStore()
-        CompletableFuture.allOf(future).thenRun {
+        CompletableFuture.allOf(future, futureFunction).thenRun {
             Log.i("STW", "DataStore.initDataStore.")
 
             val futureCompany = dataStoreViewModel.getCompany()
 
             val futureUser = dataStoreViewModel.getUser(identityId!!)
+
+            // サーバータイム設定
+            val data: String = futureFunction.get()
+            val jsonElement = Json.parseToJsonElement(data)
+            val getQRDecodeJsonString: String? = jsonElement.jsonObject["getServerTime"]?.jsonPrimitive?.content
+            val getQRDecodeElement: JsonElement? = getQRDecodeJsonString?.let { Json.parseToJsonElement(it) }
+            val serverTime = getQRDecodeElement!!.jsonObject["data"]!!.jsonPrimitive.long
+            commonDataViewModel.serverTime = serverTime
 
             if(isAgree) {
                 CompletableFuture.allOf(futureCompany, futureUser).thenRun {
@@ -276,7 +280,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                     // ローディング完了
                     initLiveData.postValue(true)
                 }
-
             }
         }
     }
@@ -306,44 +309,65 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         ){ result ->
             if (result.resultCode == RESULT_OK) {
                 val text = result.data?.getStringExtra(MainActivity.EXTRA_MESSAGE) ?: ""
-                //Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
-                // todo QRを解析して該当のラリーのチェックポイントを達成とする
-                // 獲得したらDB更新
-                /*
-                val pref = getSharedPreferences("STwPreferences", Context.MODE_PRIVATE)
-                val selectCnId = pref.getString(MainActivity.PREF_KEY_SELECT_CN_ID, "")
-                val selectSrId = pref.getString(MainActivity.PREF_KEY_SELECT_SR_ID, "")
 
-                // test
-                val cpId = "p0002"
+                val futureFunction = functionViewModel.callFunction(FunctionViewModel.FUNCTION_QR, text)
+                CompletableFuture.allOf(futureFunction).thenRun {
+                    val data: String = futureFunction.get()
+                    val jsonElement = Json.parseToJsonElement(data)
+                    val getQRDecodeJsonString: String? = jsonElement.jsonObject["getQRDecode"]?.jsonPrimitive?.content
+                    val getQRDecodeElement: JsonElement? = getQRDecodeJsonString?.let { Json.parseToJsonElement(it) }
+                    val dec = getQRDecodeElement!!.jsonObject["dec"]!!.jsonPrimitive.content
+                    val statusCode = getQRDecodeElement!!.jsonObject["statusCode"]
 
-                val completableFuture = dataStoreViewModel.updateAsyncTask(identityId!!, selectCnId!!, selectSrId!!, cpId)
-                CompletableFuture.allOf(completableFuture).thenRun {
-                    // 達成したらcommonDataListに選択CommonDataのチェックポイントを追加する
-                    var cb:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selectCnId && it.srId == selectSrId }
-                    val point:CheckPoint = CheckPoint.builder().cpId(cpId).build()
-                    if(cb != null && cb!!.complete != null){
-                        cb!!.complete!!.cp.add(point)
+                    var message = ""
+                    if(statusCode!!.jsonPrimitive.int == 200){
+                        val cnId = commonDataViewModel.selectCnId
+                        val srId = commonDataViewModel.selectSrId
+                        val qrCnId = dec.split("_")[0]
+                        val qrSrId = dec.split("_")[1]
+                        val qrCpId = dec.split("_")[2]
+
+                        if("${cnId}_${srId}" == "${qrCnId}_${qrSrId}"){
+                            var cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
+
+                            var checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == qrCpId}
+                            // 達成済み
+                            if(checkPoint != null){
+                                message = resources.getText(R.string.stamp_camera_qr_already_point).toString()
+                                showAlertDialog(message)
+                            }
+                            else {
+                                // 達成処理開始
+                                val futureStamp = dataStoreViewModel.rallyStamping(commonDataViewModel, qrCpId)
+                                CompletableFuture.allOf(futureStamp).thenRun {
+                                    // 選択中ラリーの表示更新
+                                    val mainHandler = Handler(Looper.getMainLooper())
+                                    mainHandler.post {
+                                        // 選択中ラリーの表示更新
+                                        // 達成したらcommonDataListに選択CommonDataのチェックポイントを追加する
+                                        var cb:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
+                                        val point:CheckPoint = CheckPoint.builder().cpId(qrCpId).build()
+                                        if(cb != null && cb!!.complete != null){
+                                            cb!!.complete!!.cp.add(point)
+                                        }
+                                        // 画面更新
+                                        updateSelected()
+
+                                        message = resources.getText(R.string.stamp_camera_qr_get).toString()
+                                        showAlertDialog(message)
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            message = resources.getText(R.string.stamp_camera_qr_wrong).toString()
+                            showAlertDialog(message)
+                        }
+                    } else {
+                        message = resources.getText(R.string.stamp_camera_qr_invalid).toString()
+                        showAlertDialog(message)
                     }
-
-                    // 選択中ラリーの表示更新
-                    updateSelected()
                 }
-                */
-
-                val cameraResultBinding = CameraResultBinding.inflate(layoutInflater)
-                cameraResultBinding.textView.text = "\n\nスタンプを獲得しました！\n\n"
-
-                // QA読込アラートダイアログの表示
-                val builder = AlertDialog.Builder(this)
-                builder.setView(cameraResultBinding.root)
-                val dialog = builder.create()
-                dialog!!.window!!.setBackgroundDrawableResource(android.R.color.transparent)
-                cameraResultBinding.positiveButton.setOnClickListener {
-                    dialog.dismiss()
-                }
-
-                dialog.show()
             }
         }
 
@@ -361,13 +385,10 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             setContentView(termsBinding.root)
             supportActionBar?.hide()
             termsBinding.button.setOnClickListener {
-                Log.i("MainActivity Map ======>", "ready")
-
                 // 認証開始
                 val futureAuth = dataStoreViewModel.fetchAuth()
                 CompletableFuture.allOf(futureAuth).thenRun {
                     identityId = futureAuth.get()
-                    Log.e("STW", "auth")
                     val futureCreate = dataStoreViewModel.createUser(identityId!!, "名前未設定")
                     CompletableFuture.allOf(futureCreate).thenRun {
                         val user = futureCreate.get()
@@ -389,6 +410,27 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         }
     }
 
+    /*
+    * ポイント達成時のアラートダイアログ表示
+    * message: アラートメッセージ
+    */
+    private fun showAlertDialog(message: String){
+        val cameraResultBinding = CameraResultBinding.inflate(layoutInflater)
+        val mainHandler = Handler(Looper.getMainLooper())
+        mainHandler.post {
+            cameraResultBinding.textView.text = message
+            // QA読込アラートダイアログの表示
+            val builder = AlertDialog.Builder(this)
+            builder.setView(cameraResultBinding.root)
+            val dialog = builder.create()
+            dialog!!.window!!.setBackgroundDrawableResource(android.R.color.transparent)
+            cameraResultBinding.positiveButton.setOnClickListener {
+                dialog.dismiss()
+            }
+            dialog.show()
+        }
+    }
+
     private fun getSelectId() :Pair<String, String>{
         val pref = getSharedPreferences("STwPreferences", Context.MODE_PRIVATE)
         val selectCnId = pref.getString(PREF_KEY_SELECT_CN_ID, "")
@@ -396,9 +438,33 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         return Pair(selectCnId!!, selectSrId!!)
     }
 
+    fun isRewardEnabled() {
+        val selected = getSelectId()
+        var cd: CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
+        if(cd == null){
+            binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_gray)
+            binding.layoutStamp.buttonReward.isEnabled = false
+            return
+        }
+
+        if(cd!!.completeFlg){
+            binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_ripple)
+            binding.layoutStamp.buttonReward.isEnabled = true
+        }
+        else {
+            binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_gray)
+            binding.layoutStamp.buttonReward.isEnabled = false
+        }
+    }
+
+
     fun isRewardReceived() :Boolean {
         val selected = getSelectId()
         var cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
+        // 未参加or未選択
+        if(cd == null){
+            return false
+        }
         return cd!!.got
     }
 
@@ -441,20 +507,8 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 
             // 獲得数だけ強調表示
             binding.layoutStamp.textGet.changeSizeOfText(completeCount.toString(), cd.cp.count().toString(),38)
-            val mainHandler = Handler(Looper.getMainLooper())
-            mainHandler.post {
-                binding.tvStampCount.text = "${completeCount}/${cd.cp.count()}"
-                // ラリー選択バー表示
-                binding.btStampList.visibility = View.VISIBLE
-                binding.tvStamp.visibility = View.VISIBLE
-                binding.layoutSelected.layout.visibility = View.VISIBLE
-            }
-        }
-        else {
-            // ラリー選択バー非表示
-            binding.btStampList.visibility = View.INVISIBLE
-            binding.tvStamp.visibility = View.INVISIBLE
-            binding.layoutSelected.layout.visibility = View.INVISIBLE
+
+            binding.tvStampCount.text = "${completeCount}/${cd.cp.count()}"
         }
     }
 
@@ -470,12 +524,21 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             val selected = getSelectId()
             var cd:CommonData? = commonDataViewModel.commonDataList.find { res -> res.cnId == selected.first && res.srId == selected.second }
             if(cd != null){
+                var latitudeList:ArrayList<Double> = ArrayList<Double>()
+                var longitudeList:ArrayList<Double> = ArrayList<Double>()
+
                 for(checkpoint in cd!!.cp){
                     val latLng = LatLng(checkpoint.latitude.toDouble(), checkpoint.longitude.toDouble())
                     val m = googleMap.addMarker(MarkerOptions().position(latLng).title(checkpoint.cpName))
+                    latitudeList.add(checkpoint.latitude.toDouble())
+                    longitudeList.add(checkpoint.longitude.toDouble())
                     markerList.add(m!!)
-                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
+                    //googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
                 }
+                // チェックポイント群のMAP中央表示
+                val latLng = LatLng(( latitudeList.min() + latitudeList.max() ) / 2,  (longitudeList.min() + longitudeList.max() ) / 2)
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
+
             }
             // 未選択(初期表示位置)
             else {
@@ -489,7 +552,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             // マップが初期化されるまで待機する
             Handler(Looper.getMainLooper()).postDelayed({
                 updateMap()
-            }, 1000)
+            }, 500)
         }
     }
 
@@ -514,32 +577,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             // できるだけ早くMAP位置を設定しないと世界地図が表示されてしまう。
             val latLng = LatLng(MAP_DEFAULT_LATITUDE, MAP_DEFAULT_LONGITUDE)
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
-
-            /*
-            // 初回の位置設定
-            val selected = getSelectId()
-            var cd:CommonData? = commonDataViewModel.commonDataList.find { res -> res.cnId == selected.first && res.srId == selected.second }
-
-            markerList.clear()
-
-            if(cd != null){
-                //mapViewModel.setCheckPoints(cd.cp, cd.complete)
-                for(checkpoint in cd.cp){
-                    val latLng = LatLng(checkpoint.latitude.toDouble(), checkpoint.longitude.toDouble())
-                    val m = googleMap.addMarker(MarkerOptions().position(latLng).title(checkpoint.cpName))
-                    markerList.add(m!!)
-                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
-                }
-            }
-            // 未選択(初期表示位置)
-            else {
-                val latLng = LatLng(MAP_DEFAULT_LATITUDE, MAP_DEFAULT_LONGITUDE)
-                val m = googleMap.addMarker(MarkerOptions().position(latLng).title("東京大学"))
-                markerList.add(m!!)
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
-            }
-            */
-
         }
 
         // 選択中ラリーの表示更新
@@ -602,29 +639,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                     val intent = Intent(this, CameraActivity::class.java)
                     cameraLauncher.launch(intent)
 
-
-                    /*
-                    Amplify.API.query(qrRequest("Z0FBQUFBQmtkYlFVNnBsRHdveXlTN0Zfa1NxU2JQeDZxWFVPRXhTTUpvbnNZUzluU0dzZVBlOS04czJUTzV6cVZva25Tb1ZFY3FtTEJ4dHp1YUZ5ZWNBMmhKVHk3aXJKQ1YzLVlNbmxjbldRbUhwTDBxVFQ3TFE9@6e424c5469356d44494d59586b326e6b484c416c37344a3437785364393470355f444538436643584276553d"),
-                        {
-                            Log.d("MyAmplifyApp", "Response = $it")
-                        },
-                        {
-                            Log.e("MyAmplifyApp", "Error!", it)
-                        }
-                    )
-                    */
-
-                    /*
-                    Amplify.API.query(serverTimeRequest(),
-                        {
-                            Log.d("MyAmplifyApp", "Response = $it")
-                        },
-                        {
-                            Log.e("MyAmplifyApp", "Error!", it)
-                        }
-                    )
-                    */
-
                     true
                 }
 
@@ -649,33 +663,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 //            startActivity(intent2UserSetting)
 //        }
     }
-
-    /*
-    * in: 読み取ったQRコード
-    * return: QRコードデコードリクエスト
-    * */
-    private fun qrRequest(text:String): GraphQLRequest<String> {
-        val document = ("query getQRDecode(\$qr: String) { "
-                + "getQRDecode(qr: \$qr) "
-                + "}")
-        return SimpleGraphQLRequest(
-            document,
-            mapOf("qr" to text),
-            String::class.java,
-            GsonVariablesSerializer())
-    }
-
-    private fun serverTimeRequest(): GraphQLRequest<String> {
-        val document = ("query getMyData { "
-                + "getMyData "
-                + "}")
-        return SimpleGraphQLRequest(
-            document,
-            mapOf("id" to "abc"),
-            String::class.java,
-            GsonVariablesSerializer())
-    }
-
 
     private inner class SwTouchListener : View.OnTouchListener {
         override fun onTouch(v: View, event: MotionEvent): Boolean {
@@ -723,8 +710,8 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                             binding.layoutReward.swReceiveReward.isChecked = false
                             binding.layoutReward.swReceiveReward.isClickable = true
                             binding.layoutStamp.buttonReward.text = resources.getText(R.string.stamp_get_reward)
-                            binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_ripple)
-                            binding.layoutStamp.buttonReward.isEnabled = true
+                            // スタンプラリー達成していれば獲得ボタン有効
+                            isRewardEnabled()
                         }
 
                         stampLayout.visibility = View.VISIBLE
@@ -767,7 +754,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                         // 報酬未受取の場合は受取画面を表示
                         rewardLayout.visibility = View.VISIBLE
                     }
-
                 }
 
                 //閉じるボタン

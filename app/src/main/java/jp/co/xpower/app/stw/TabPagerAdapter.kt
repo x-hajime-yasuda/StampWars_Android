@@ -9,9 +9,9 @@ import com.amplifyframework.datastore.generated.model.StwCompany
 class TabPagerAdapter(private val param: ArrayList<StwCompany>, fragmentManager: FragmentManager, lifecycle: Lifecycle) : FragmentStateAdapter(fragmentManager, lifecycle) {
 
     private val fragments: ArrayList<Fragment> = arrayListOf(
-        RallyPublicFragment.newInstance(param),
-        RallyPublicFragment.newInstance(param),
-        RallyPublicFragment.newInstance(param)
+        RallyPublicFragment.newInstance(MainActivity.RALLY_STATE_ALL),
+        RallyPublicFragment.newInstance(MainActivity.RALLY_STATE_JOIN),
+        RallyPublicFragment.newInstance(MainActivity.RALLY_STATE_END)
     )
 
     override fun getItemCount() : Int = 3
