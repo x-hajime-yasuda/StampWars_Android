@@ -1,7 +1,10 @@
 package jp.co.xpower.app.stw
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -20,6 +23,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
@@ -46,6 +50,11 @@ import com.amplifyframework.datastore.generated.model.Complete
 import com.amplifyframework.datastore.generated.model.Rally
 import com.amplifyframework.datastore.generated.model.StwCompany
 import com.amplifyframework.datastore.generated.model.StwUser
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
@@ -90,6 +99,9 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 
     private var isDataStoreInitialized = false
 
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
+    private lateinit var currentLocation: Location
 
     companion object {
         const val  EXTRA_MESSAGE ="jp.co.xpower.app.stw.camera_activity.MESSAGE"
@@ -106,6 +118,8 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         const val PREF_KEY_AGREE = "is_agree"
         const val PREF_KEY_SELECT_CN_ID = "select_cn_id"
         const val PREF_KEY_SELECT_SR_ID = "select_sr_id"
+
+        const val PERMISSION_REQUEST_CODE = 1234
     }
 
 
@@ -354,6 +368,19 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         // 初期データ取得
         startInitProcess(isAgree)
 
+        // 現在地情報取得のための設定
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                locationResult ?: return
+                for (location in locationResult.locations){
+                    currentLocation = location
+                    showGetablePoint()
+                    println("----------------------------------${location.latitude} , ${location.longitude}")
+                }
+            }
+        }
+
         // 初回起動規約同意前
         if(!isAgree){
             // 規約同意レイアウト表示
@@ -387,6 +414,16 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        startLocationUpdates()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopLocationUpdates()
     }
 
     private fun getSelectId() :Pair<String, String>{
@@ -647,6 +684,80 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         binding.openUserSetting.setOnClickListener {
             val intent2UserSetting = Intent(this@MainActivity, UserSettingActivity::class.java)
             startActivity(intent2UserSetting)
+//            getStampFromLocation()
+        }
+    }
+    private fun checkPermission(){
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(this,
+                arrayOf(
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                ),
+                PERMISSION_REQUEST_CODE
+            )
+        }
+    }
+
+    private fun getStampFromLocation(){
+        val selected = getSelectId()
+        var cd:CommonData? = commonDataViewModel.commonDataList.find { res -> res.cnId == selected.first && res.srId == selected.second }
+        if(cd != null){
+            println("【${cd.title}】")
+            for(checkpoint in cd!!.cp){
+                var results = FloatArray(3)
+                Location.distanceBetween(checkpoint.latitude.toDouble(), checkpoint.longitude.toDouble(), currentLocation.latitude, currentLocation.longitude, results)
+                println("--------------- ${checkpoint.cpName}との距離：${results.get(0)}m ---------------")
+
+                if(results.get(0) < 5){
+                    Toast.makeText(this@MainActivity ,"近くのチェックポイント：${checkpoint.cpName}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun showGetablePoint(){
+        val selected = getSelectId()
+        var cd:CommonData? = commonDataViewModel.commonDataList.find { res -> res.cnId == selected.first && res.srId == selected.second }
+        if(cd != null){
+            for(checkpoint in cd!!.cp){
+                var results = FloatArray(3)
+                Location.distanceBetween(checkpoint.latitude.toDouble(), checkpoint.longitude.toDouble(), currentLocation.latitude, currentLocation.longitude, results)
+
+                if(results.get(0) < 5){
+                    Toast.makeText(this@MainActivity ,"近くのチェックポイント：${checkpoint.cpName}\n(${results.get(0)}m)", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun startLocationUpdates() {
+        val locationRequest = createLocationRequest() ?: return
+
+        checkPermission()
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            null)
+    }
+
+    private fun stopLocationUpdates() {
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+    private fun createLocationRequest(): LocationRequest? {
+        return LocationRequest.create()?.apply {
+            interval = 10000
+            fastestInterval = 5000
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
     }
 
