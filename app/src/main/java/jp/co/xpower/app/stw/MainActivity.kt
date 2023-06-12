@@ -58,6 +58,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.Marker
@@ -102,6 +103,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
     private lateinit var currentLocation: Location
+    private var currentMarker : Marker? = null
 
     companion object {
         const val  EXTRA_MESSAGE ="jp.co.xpower.app.stw.camera_activity.MESSAGE"
@@ -121,7 +123,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 
         const val PERMISSION_REQUEST_CODE = 1234
     }
-
 
     private fun TextView.changeSizeOfText(target: String, other:String, size: Int){
 
@@ -368,18 +369,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         // 初期データ取得
         startInitProcess(isAgree)
 
-        // 現在地情報取得のための設定
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult) {
-                locationResult ?: return
-                for (location in locationResult.locations){
-                    currentLocation = location
-                    showGetablePoint()
-                    println("----------------------------------${location.latitude} , ${location.longitude}")
-                }
-            }
-        }
 
         // 初回起動規約同意前
         if(!isAgree){
@@ -418,7 +407,9 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 
     override fun onResume() {
         super.onResume()
-        startLocationUpdates()
+        if(this::fusedLocationClient.isInitialized){
+            startLocationUpdates()
+        }
     }
 
     override fun onPause() {
@@ -576,7 +567,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
             }
             */
-
         }
 
         // 選択中ラリーの表示更新
@@ -680,11 +670,39 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             }
         }
 
-        // ユーザ設定画面ボタン（仮）の表示
+        // ユーザ設定画面ボタン（仮）の設定
         binding.openUserSetting.setOnClickListener {
             val intent2UserSetting = Intent(this@MainActivity, UserSettingActivity::class.java)
             startActivity(intent2UserSetting)
-//            getStampFromLocation()
+        }
+
+        // 現在地情報取得のための設定
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult) {
+                locationResult ?: return
+                for (location in locationResult.locations){
+                    val current = LatLng(location.latitude, location.longitude)
+                    currentMarker?.remove()
+                    currentMarker = googleMap?.addMarker(
+                        MarkerOptions()
+                            .position(current)
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.current_location))
+                            .zIndex(3.0f)
+                    )
+                    println("--------------------(${location.latitude}, ${location.longitude})----------------------")
+                    currentLocation = location
+                    showGetablePoint()
+                }
+            }
+        }
+        startLocationUpdates()
+        println("*********************startLocationUpdates()*****************************")
+
+        // 現在地に移動するボタンの設定
+        binding.moveCurrentLocation.setOnClickListener {
+            val latLng = LatLng(currentLocation.latitude, currentLocation.longitude)
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
         }
     }
     private fun checkPermission(){
