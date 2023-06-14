@@ -68,4 +68,7 @@
 
     <string name="setting_birth">誕生日を選択</string>
     <string name="setting_selected_birth">%d年%d月%d日</string>
+
+    <string name="info_window_getable">スタンプ取得可能</string>
+    <string name="info_window_tap">タップで取得</string>
 </resources>

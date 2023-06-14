@@ -23,8 +23,11 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.children
+import androidx.core.view.isVisible
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
@@ -78,7 +81,7 @@ import java.util.concurrent.Executors
 import jp.co.xpower.app.stw.model.StorageViewModel
 
 
-class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
+class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
     private lateinit var binding: ActivityMainBinding
     private lateinit var termsBinding: TermsOfServiceBinding
     private lateinit var googleMap: GoogleMap
@@ -104,6 +107,8 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
     private lateinit var locationCallback: LocationCallback
     private lateinit var currentLocation: Location
     private var currentMarker : Marker? = null
+    private var locationFlag : Boolean = false
+    private var openedMarker : Marker? = null
 
     companion object {
         const val  EXTRA_MESSAGE ="jp.co.xpower.app.stw.camera_activity.MESSAGE"
@@ -144,6 +149,10 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
     override fun onMarkerClick(marker: Marker): Boolean {
 
         val m = marker.title
+
+        if(marker.equals(currentMarker)){
+            return true
+        }
 
         return false
     }
@@ -543,6 +552,47 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             val latLng = LatLng(MAP_DEFAULT_LATITUDE, MAP_DEFAULT_LONGITUDE)
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
 
+            // info windowの設定
+            googleMap.setInfoWindowAdapter(object: GoogleMap.InfoWindowAdapter{
+                override fun getInfoContents(marker: Marker): View? {
+                    val view = layoutInflater.inflate(R.layout.marker_info_window, null)
+                    val latLng = marker.position
+                    val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
+                    val tvMarkerTitle = view.findViewById<TextView>(R.id.tvMarkerTitle)
+
+                    val normalLayout = view.findViewById<ConstraintLayout>(R.id.normalLayout)
+                    val getableLayout = view.findViewById<ConstraintLayout>(R.id.getableLayout)
+
+                    tvTitle.setText(marker.title)
+                    //tvMarkerTitle.setText(marker.title)
+
+                    // すべてのレイアウトを非表示に設定
+                    for(view in view.findViewById<ConstraintLayout>(R.id.infoCL).children){
+                        view.visibility = View.GONE
+                    }
+
+                    // 表示するレイアウトのみをVISIBLEに設定
+                    if(isGetable(latLng.latitude, latLng.longitude)){
+                        getableLayout.visibility = View.VISIBLE
+                    } else {
+                        normalLayout.visibility = View.VISIBLE
+
+                    }
+
+                    return view
+                }
+
+                override fun getInfoWindow(marker: Marker): View? {
+                    return null
+                }
+            })
+
+            googleMap.setOnInfoWindowClickListener {
+                if(isGetable(it.position.latitude, it.position.longitude)){
+                    Toast.makeText(this@MainActivity, "${it.title}のスタンプを取得（未実装）", Toast.LENGTH_SHORT).show()
+                }
+            }
+
             /*
             // 初回の位置設定
             val selected = getSelectId()
@@ -688,16 +738,14 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                         MarkerOptions()
                             .position(current)
                             .icon(BitmapDescriptorFactory.fromResource(R.drawable.current_location))
-                            .zIndex(3.0f)
+                            .zIndex(-1.0f)
                     )
-                    println("--------------------(${location.latitude}, ${location.longitude})----------------------")
                     currentLocation = location
                     showGetablePoint()
                 }
             }
         }
         startLocationUpdates()
-        println("*********************startLocationUpdates()*****************************")
 
         // 現在地に移動するボタンの設定
         binding.moveCurrentLocation.setOnClickListener {
@@ -725,36 +773,41 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         }
     }
 
-    private fun getStampFromLocation(){
-        val selected = getSelectId()
-        var cd:CommonData? = commonDataViewModel.commonDataList.find { res -> res.cnId == selected.first && res.srId == selected.second }
-        if(cd != null){
-            println("【${cd.title}】")
-            for(checkpoint in cd!!.cp){
-                var results = FloatArray(3)
-                Location.distanceBetween(checkpoint.latitude.toDouble(), checkpoint.longitude.toDouble(), currentLocation.latitude, currentLocation.longitude, results)
-                println("--------------- ${checkpoint.cpName}との距離：${results.get(0)}m ---------------")
+    private fun showGetablePoint(){
+        var flag = true
+        for(marker in markerList){
+            if(isGetable(marker)){
+                flag = false
 
-                if(results.get(0) < 5){
-                    Toast.makeText(this@MainActivity ,"近くのチェックポイント：${checkpoint.cpName}", Toast.LENGTH_SHORT).show()
+                if(!locationFlag){
+                    marker.showInfoWindow()
+                    openedMarker = marker
+                    locationFlag = true
                 }
+                break
             }
+        }
+        if(flag){
+            openedMarker?.hideInfoWindow()
+            locationFlag = false
         }
     }
 
-    private fun showGetablePoint(){
-        val selected = getSelectId()
-        var cd:CommonData? = commonDataViewModel.commonDataList.find { res -> res.cnId == selected.first && res.srId == selected.second }
-        if(cd != null){
-            for(checkpoint in cd!!.cp){
-                var results = FloatArray(3)
-                Location.distanceBetween(checkpoint.latitude.toDouble(), checkpoint.longitude.toDouble(), currentLocation.latitude, currentLocation.longitude, results)
+    private fun isGetable(latitude: Double, longitude: Double) : Boolean {
+        var results = FloatArray(3)
 
-                if(results.get(0) < 5){
-                    Toast.makeText(this@MainActivity ,"近くのチェックポイント：${checkpoint.cpName}\n(${results.get(0)}m)", Toast.LENGTH_SHORT).show()
-                }
-            }
+        // currentLocationが初期化されていなければfalse
+        if(!this::currentLocation.isInitialized){
+            return false
         }
+
+        Location.distanceBetween(latitude, longitude, currentLocation.latitude, currentLocation.longitude, results)
+
+        return results.get(0) < 5
+    }
+
+    private fun isGetable(marker: Marker): Boolean{
+        return isGetable(marker.position.latitude, marker.position.longitude)
     }
 
     private fun startLocationUpdates() {
