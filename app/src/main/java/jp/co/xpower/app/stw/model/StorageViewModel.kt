@@ -1,7 +1,5 @@
 package jp.co.xpower.app.stw.model
 
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,6 +19,11 @@ class StorageViewModel : ViewModel() {
         const val IMAGE_DIR_REWARD = "reward"
     }
 
+    /*
+    * 保存先と対象ファイルのキーを指定してS3よりダウンロードする
+    * file: 保存先
+    * key: S3の対象ファイルのキー
+    * */
     private fun downloadItem(file: File, item: String) {
         viewModelScope.launch {
             Amplify.Storage.downloadFile(item, file,
@@ -37,6 +40,7 @@ class StorageViewModel : ViewModel() {
     /*
     * S3に無くてローカルにある画像を削除する
     * path: 対象のローカルディレクトリパス
+    * list: チェック対象元のS3ファイルリスト
     */
     private fun clearImage(path: String, list:ArrayList<StorageItem>){
         val directory = File(path)
@@ -116,6 +120,10 @@ class StorageViewModel : ViewModel() {
         return completableFuture
     }
 
+    /*
+    * ダウンロード対象のリストを取得する
+    * path: S3ストレージパス
+    */
     private fun getStorageItem(path:String) :CompletableFuture<ArrayList<StorageItem>> {
         val options = StoragePagedListOptions.builder()
             .setPageSize(500)

@@ -40,6 +40,8 @@ class CommonDataViewModel : ViewModel() {
     var identityId = ""
     // 選択中データ
     var selected:CommonData? = null
+    // サーバータイム
+    var serverTime: Long = 0L
 }
 
 

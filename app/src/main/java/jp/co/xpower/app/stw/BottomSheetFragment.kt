@@ -74,9 +74,9 @@ class BottomSheetFragment : BottomSheetDialogFragment(), RecyclerViewListener {
         binding.layout.viewPager.adapter = adapter
 
         val tabTitles = listOf(
-            resources.getString(R.string.tab_in_session),
+            resources.getString(R.string.tab_in_all),
             resources.getString(R.string.tab_joining),
-            resources.getString(R.string.tab_history)
+            resources.getString(R.string.tab_ended)
         )
 
         val bottomSheetBehavior = BottomSheetBehavior.from(view.parent as View)

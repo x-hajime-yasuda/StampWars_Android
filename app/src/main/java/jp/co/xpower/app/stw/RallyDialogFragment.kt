@@ -15,10 +15,7 @@ import android.view.Window
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.material.snackbar.BaseTransientBottomBar
-import com.google.android.material.snackbar.Snackbar
 import jp.co.xpower.app.stw.databinding.FragmentRallyDialogBinding
-import jp.co.xpower.app.stw.model.CommonData
 import jp.co.xpower.app.stw.model.CommonDataViewModel
 import jp.co.xpower.app.stw.model.DataStoreViewModel
 import jp.co.xpower.app.stw.model.StorageViewModel
@@ -138,12 +135,6 @@ class RallyDialogFragment : DialogFragment() {
         // 報酬タイトル
         binding.textReward.text = data!!.rewardTitle
 
-        if(data!!.completeFlg){
-            binding.buttonJoin.isEnabled = false
-            // 非活性
-            binding.buttonJoin.setBackgroundResource(R.drawable.button_gray)
-        }
-
         // 選択・参加ボタン押下
         binding.buttonJoin.setOnClickListener {
             // 参加中のラリーの選択
@@ -160,30 +151,6 @@ class RallyDialogFragment : DialogFragment() {
                     dismiss()
                 }
             }
-
-            /*
-            // test チェックポイント達成
-            val completableFuture2 = dataStoreViewModel.rallyStamping(commonDataViewModel, "p0001")
-            CompletableFuture.allOf(completableFuture2).thenRun {
-                val ret:Int = completableFuture2.get()
-                dismiss()
-            }
-            */
-
-
-
-            /*
-            //val completableFuture = dataStoreViewModel.updateAsyncTask(identityId, "c0004", "s0001", "p0005")
-            //val completableFuture = dataStoreViewModel.updateAsyncTask(identityId, data.cnId, data.srId, "p0001")
-            val completableFuture = dataStoreViewModel.updateAsyncTask(identityId, data.cnId, data.srId, "")
-            CompletableFuture.allOf(completableFuture).thenRun {
-                Log.i("STW", "Updated a ....")
-                dismissListener?.onDialogDismissed(data.cnId, data.srId)
-                dismiss()
-            }
-
-            */
-
         }
 
         binding.buttonClose.setOnClickListener {

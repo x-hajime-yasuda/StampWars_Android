@@ -9,11 +9,15 @@
     <string name="term_of_service" translatable="false"><b>【スタンプウォーズ利用規約】</b>\n\n\nこの利用規約（以下，「本規約」といいます。）は，＿＿＿＿＿（以下，「当社」といいます。）がこのウェブサイト上で提供するサービス（以下，「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下，「ユーザー」といいます。）には，本規約に従って，本サービスをご利用いただきます。この利用規約（以下，「本規約」といいます。）は，＿＿＿＿＿（以下，「当社」といいます。）がこのウェブサイト上で提供するサービス（以下，「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下，「ユーザー」といいます。）には，本規約に従って，本サービスをご利用いただきます。この利用規約（以下，「本規約」といいます。）は，＿＿＿＿＿（以下，「当社」といいます。）がこのウェブサイト上で提供するサービス（以下，「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下，「ユーザー」といいます。）には，本規約に従って，本サービスをご利用いただきます。この利用規約（以下，「本規約」といいます。）は，＿＿＿＿＿（以下，「当社」といいます。）がこのウェブサイト上で提供するサービス（以下，「本サービス」といいます。）の利用条件を定めるものです。登録ユーザーの皆さま（以下，「ユーザー」といいます。）には，本規約に従って，本サービスをご利用いただきます。</string>
     <string name="stamp">スタンプ</string>
     <string name="stamp_get">スタンプの数</string>
-    <string name="stamp_count">0/99</string>
+    <string name="stamp_count">0/0</string>
     <string name="stamp_spot_name">校舎の屋上の奥の奥</string>
     <string name="stamp_get_reward">景品を獲得する</string>
     <string name="stamp_got_reward">景品獲得済み</string>
-    <string name="stamp_camera_qr_error">スタンプウォーズに対応していないQRが読み込まれました。</string>
+    <string name="stamp_camera_qr_already_point">\n\n達成済みのチェックポイントです\n\n</string>
+    <string name="stamp_camera_qr_get">\n\nスタンプを獲得しました！\n\n</string>
+    <string name="stamp_camera_qr_invalid">\n\n無効なQRコードです\n\n</string>
+    <string name="stamp_camera_qr_wrong">\n\n選択中・参加中ではないQRコードです\n\n</string>
+    <string name="stamp_camera_qr_error">スタンプウォーズに対応していないQRが読み込まれました</string>
 
     <string name="sys_button_close">閉じる</string>
 
@@ -25,13 +29,16 @@
     <string name="back_to_stamp_card">スタンプカードに戻る</string>
     <string name="after_receive_msg">景品の受け取りが完了しました</string>
 
-    <string name="tab_in_session">開催中</string>
+    <string name="tab_in_all">すべて</string>
     <string name="tab_joining">参加中</string>
+    <string name="tab_ended">終了済み</string>
+
+    <string name="tab_in_session">開催中</string>
     <string name="tab_history">参加履歴</string>
     <string name="tab_reward">特典</string>
     <string name="rally_reward_valid">有効期限: 2024/12/31</string>
     <string name="rally_selected">選択中 ▷ </string>
-    <string name="rally_selected_name">▲▲▲学園学園祭 </string>
+    <string name="rally_selected_name">ラリーが選択されていません</string>
 
     <string name="rally_title_01">スタンプラリー 01</string>
     <string name="rally_detail_01">"詳細　　▷ こどもの日は、毎年5月5日に日本で祝われる祝日の一つであり、日本の伝統行事の中でも重要なものの一つです。この日は、子供たちを祝福し、彼らの健やかな成長を願う日とされています。"

@@ -22,8 +22,7 @@ import java.io.File
 
 
 // TODO: Rename parameter arguments, choose names that match
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+private const val ARG_PARAM = "param"
 
 interface DialogDismissListener {
     fun onSelect(cnId:String, srId:String)
@@ -37,7 +36,7 @@ interface DialogDismissListener {
  */
 class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListener {
     // TODO: Rename and change types of parameters
-    private var param1: String? = null
+    private var param: Int? = null
     private var _binding: FragmentRallyPublicBinding? = null
     private val binding get() = _binding!!
     private var behavior: BottomSheetBehavior<View>? = null
@@ -52,7 +51,7 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
+            param = it.getInt(ARG_PARAM)
         }
     }
 
@@ -171,7 +170,20 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
         val selectCnId = pref.getString(MainActivity.PREF_KEY_SELECT_CN_ID, "")
         val selectSrId = pref.getString(MainActivity.PREF_KEY_SELECT_SR_ID, "")
 
-        for(list in commonDataViewModel.commonDataList){
+        var l = ArrayList<CommonData>()
+        if(param == MainActivity.RALLY_STATE_ALL){
+            l = commonDataViewModel.commonDataList
+        }
+        else if(param == MainActivity.RALLY_STATE_END){
+            l = commonDataViewModel.commonDataList.filter { it.state == MainActivity.RALLY_STATE_END } as ArrayList<CommonData>
+        }
+        else if(param == MainActivity.RALLY_STATE_JOIN){
+            l = commonDataViewModel.commonDataList.filter { it.joinFlg } as ArrayList<CommonData>
+        }
+
+        //for(list in commonDataViewModel.commonDataList){
+        //for (list in commonDataViewModel.commonDataList.filter { it.state == MainActivity.RALLY_STATE_PUBLIC }) {
+        for(list in l){
             var selected:Boolean = false
             if(selectCnId == list.cnId && selectSrId == list.srId){
                 selected = true
@@ -302,9 +314,11 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
          */
         // TODO: Rename and change types and number of parameters
         @JvmStatic
-        fun newInstance(param1: ArrayList<StwCompany>) =
+        //fun newInstance(param1: ArrayList<StwCompany>) =
+        fun newInstance(param: Int) =
             RallyPublicFragment().apply {
                 arguments = Bundle().apply {
+                    putInt(ARG_PARAM, param)
                 }
             }
     }

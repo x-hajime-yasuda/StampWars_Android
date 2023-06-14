@@ -41,7 +41,6 @@ class UserSettingActivity : AppCompatActivity() {
 
     private fun createSettingList() : MutableList<MutableMap<String, Any>> {
         val menuList: MutableList<MutableMap<String, Any>> = mutableListOf()
-
         var menu = mutableMapOf<String, Any>("name" to getString(R.string.setting_profile), "image" to R.drawable.setting_user_profile)
         menuList.add(menu)
         menu = mutableMapOf<String, Any>("name" to getString(R.string.setting_mail), "image" to R.drawable.setting_mail)
