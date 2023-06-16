@@ -17,7 +17,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -56,6 +55,7 @@ import java.util.concurrent.Executors
 import jp.co.xpower.app.stw.model.*
 
 import kotlinx.serialization.json.*
+import java.lang.NullPointerException
 import kotlin.collections.ArrayList
 
 
@@ -77,8 +77,8 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
     private var serverTime:Long = 0L
 
     private val initLiveData = MutableLiveData<Boolean>()
-    private val markerList: MutableList<Marker> = mutableListOf()
-
+    //private val markerList: MutableList<Marker> = mutableListOf()
+    private val markerList: HashMap<Marker, CheckPoint?> = hashMapOf()
     private var isDataStoreInitialized = false
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -553,7 +553,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         if (::googleMap.isInitialized) {
 
             // マーカー削除
-            for(marker in markerList){
+            for(marker in markerList.keys){
                 marker.remove()
             }
             markerList.clear()
@@ -569,7 +569,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     val m = googleMap.addMarker(MarkerOptions().position(latLng).title(checkpoint.cpName))
                     latitudeList.add(checkpoint.latitude.toDouble())
                     longitudeList.add(checkpoint.longitude.toDouble())
-                    markerList.add(m!!)
+                    markerList.set(m!!, checkpoint!!)
                     //googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
                 }
                 // チェックポイント群のMAP中央表示
@@ -581,7 +581,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
             else {
                 val latLng = LatLng(MAP_DEFAULT_LATITUDE, MAP_DEFAULT_LONGITUDE)
                 val m = googleMap.addMarker(MarkerOptions().position(latLng).title("東京大学"))
-                markerList.add(m!!)
+                markerList.set(m!!, null)
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
             }
         }
@@ -652,7 +652,38 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
 
             googleMap.setOnInfoWindowClickListener {
                 if(isGetable(it.position.latitude, it.position.longitude)){
-                    Toast.makeText(this@MainActivity, "${it.title}のスタンプを取得（未実装）", Toast.LENGTH_SHORT).show()
+                    val cnId = commonDataViewModel.selectCnId
+                    val srId = commonDataViewModel.selectSrId
+                    val cpId = markerList.get(it)!!.cpId
+
+                    val cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
+                    val checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == cpId}
+
+                    // 達成済み
+                    if(checkPoint != null){
+                        val message = resources.getText(R.string.stamp_camera_qr_already_point).toString()
+                        showAlertDialog(message)
+                    }
+                    else{
+                        val futureStamp = dataStoreViewModel.rallyStamping(commonDataViewModel, cpId)
+                        CompletableFuture.allOf(futureStamp).thenRun {
+                            val mainHandler = Handler(Looper.getMainLooper())
+                            mainHandler.post {
+                                // 選択中ラリーの表示更新
+                                // 達成したらcommonDataListに選択CommonDataのチェックポイントを追加する
+                                val cb: CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
+                                val point: CheckPoint = CheckPoint.builder().cpId(cpId).build()
+                                if (cb != null && cb!!.complete != null) {
+                                    cb!!.complete!!.cp.add(point)
+                                }
+                                // 画面更新
+                                updateSelected()
+
+                                val message = resources.getText(R.string.stamp_camera_qr_get).toString()
+                                showAlertDialog(message)
+                            }
+                        }
+                    }
                 }
             }
 
@@ -815,7 +846,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
 
     private fun showGetablePoint(){
         var flag = true
-        for(marker in markerList){
+        for(marker in markerList.keys){
             if(isGetable(marker)){
                 flag = false
 
