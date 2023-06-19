@@ -85,7 +85,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
     private lateinit var locationCallback: LocationCallback
     private lateinit var currentLocation: Location
     private var currentMarker : Marker? = null
-    private var locationFlag : Boolean = false
     private var openedMarker : Marker? = null
 
     companion object {
@@ -621,7 +620,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     val view = layoutInflater.inflate(R.layout.marker_info_window, null)
                     val latLng = marker.position
                     val tvTitle = view.findViewById<TextView>(R.id.tvTitle)
-                    val tvMarkerTitle = view.findViewById<TextView>(R.id.tvMarkerTitle)
 
                     val normalLayout = view.findViewById<ConstraintLayout>(R.id.normalLayout)
                     val gotLayout = view.findViewById<ConstraintLayout>(R.id.gotLayout)
@@ -629,7 +627,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     val getableLayout = view.findViewById<ConstraintLayout>(R.id.getableLayout)
 
                     tvTitle.setText(marker.title)
-                    //tvMarkerTitle.setText(marker.title)
 
                     // normalLayout以外のすべてのレイアウトを非表示に設定
                     for(view in view.findViewById<ConstraintLayout>(R.id.infoCL).children){
@@ -642,15 +639,8 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     val srId = commonDataViewModel.selectSrId
                     val cpId = markerList.get(marker)!!.cpId
                     val cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
-//                    val checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == cpId}
+                    val checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == cpId}
 
-                    // 一時的な記述
-                    var checkPoint:CheckPoint?
-                    if(cd!!.complete!!.cp == null){
-                        checkPoint = null
-                    } else {
-                        checkPoint = cd!!.complete!!.cp.find{it.cpId == cpId}
-                    }
 
                     // 取得済みの場合
                     if(checkPoint != null){
@@ -662,9 +652,10 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     /*
                         以下未取得の場合
                      */
-                    notAcquiredLayout.visibility = View.VISIBLE
                     if(isGetable(latLng.latitude, latLng.longitude)){
                         getableLayout.visibility = View.VISIBLE
+                    } else {
+                        notAcquiredLayout.visibility = View.VISIBLE
                     }
 
                     return view
@@ -682,14 +673,10 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     val cpId = markerList.get(it)!!.cpId
 
                     val cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
-                    val checkPoint:CheckPoint? = null//cd!!.complete!!.cp.find{it.cpId == cpId}
+                    val checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == cpId}
 
                     // 達成済み
-                    if(checkPoint != null){
-                        val message = resources.getText(R.string.stamp_camera_qr_already_point).toString()
-                        showAlertDialog(message)
-                    }
-                    else{
+                    if(checkPoint == null) {
                         val futureStamp = dataStoreViewModel.rallyStamping(commonDataViewModel, cpId)
                         CompletableFuture.allOf(futureStamp).thenRun {
                             val mainHandler = Handler(Looper.getMainLooper())
@@ -875,17 +862,16 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
             if(isGetable(marker)){
                 flag = false
 
-                if(!locationFlag){
+                if(openedMarker != marker){
                     marker.showInfoWindow()
                     openedMarker = marker
-                    locationFlag = true
                 }
                 break
             }
         }
         if(flag){
             openedMarker?.hideInfoWindow()
-            locationFlag = false
+            openedMarker = null
         }
     }
 
