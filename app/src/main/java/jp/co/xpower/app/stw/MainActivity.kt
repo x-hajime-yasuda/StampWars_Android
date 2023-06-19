@@ -624,22 +624,47 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     val tvMarkerTitle = view.findViewById<TextView>(R.id.tvMarkerTitle)
 
                     val normalLayout = view.findViewById<ConstraintLayout>(R.id.normalLayout)
+                    val gotLayout = view.findViewById<ConstraintLayout>(R.id.gotLayout)
+                    val notAcquiredLayout = view.findViewById<ConstraintLayout>(R.id.notAcquiredLayout)
                     val getableLayout = view.findViewById<ConstraintLayout>(R.id.getableLayout)
 
                     tvTitle.setText(marker.title)
                     //tvMarkerTitle.setText(marker.title)
 
-                    // すべてのレイアウトを非表示に設定
+                    // normalLayout以外のすべてのレイアウトを非表示に設定
                     for(view in view.findViewById<ConstraintLayout>(R.id.infoCL).children){
                         view.visibility = View.GONE
                     }
+                    normalLayout.visibility = View.VISIBLE
 
-                    // 表示するレイアウトのみをVISIBLEに設定
+
+                    val cnId = commonDataViewModel.selectCnId
+                    val srId = commonDataViewModel.selectSrId
+                    val cpId = markerList.get(marker)!!.cpId
+                    val cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
+//                    val checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == cpId}
+
+                    // 一時的な記述
+                    var checkPoint:CheckPoint?
+                    if(cd!!.complete!!.cp == null){
+                        checkPoint = null
+                    } else {
+                        checkPoint = cd!!.complete!!.cp.find{it.cpId == cpId}
+                    }
+
+                    // 取得済みの場合
+                    if(checkPoint != null){
+                        gotLayout.visibility = View.VISIBLE
+                        return view
+                    }
+
+
+                    /*
+                        以下未取得の場合
+                     */
+                    notAcquiredLayout.visibility = View.VISIBLE
                     if(isGetable(latLng.latitude, latLng.longitude)){
                         getableLayout.visibility = View.VISIBLE
-                    } else {
-                        normalLayout.visibility = View.VISIBLE
-
                     }
 
                     return view
@@ -657,7 +682,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     val cpId = markerList.get(it)!!.cpId
 
                     val cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
-                    val checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == cpId}
+                    val checkPoint:CheckPoint? = null//cd!!.complete!!.cp.find{it.cpId == cpId}
 
                     // 達成済み
                     if(checkPoint != null){

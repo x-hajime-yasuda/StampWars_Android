@@ -18,6 +18,7 @@
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -29,8 +30,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.504"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/normalLayout">
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout2">
 
         <LinearLayout
             android:id="@+id/linearLayout2"
@@ -64,8 +66,8 @@
                 android:id="@+id/imageView"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:tint="@android:color/holo_red_light"
-                app:srcCompat="@drawable/stamp_icon" />
+                app:srcCompat="@drawable/stamp_icon"
+                app:tint="@android:color/holo_red_light" />
         </LinearLayout>
 
         <TextView
@@ -78,6 +80,49 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
 
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/gotLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/normalLayout">
+
+        <TextView
+            android:id="@+id/tvGot"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="取得済み"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/tvGot"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/checkmark"
+            app:tint="@color/design_default_color_secondary" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/notAcquiredLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gotLayout">
+
+        <TextView
+            android:id="@+id/tvNotAcquired"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="未取得" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
