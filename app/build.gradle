@@ -6,11 +6,11 @@ plugins {
 
 
 android {
-    namespace 'jp.co.xpower.app.stw'
+    namespace 'jp.co.xpower.cotamp'
     compileSdk 33
 
     defaultConfig {
-        applicationId "jp.co.xpower.app.stw"
+        applicationId "jp.co.xpower.cotamp"
         minSdk 25
         targetSdk 33
         versionCode 1

@@ -9,7 +9,7 @@
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="2dp"
         android:text="@string/term_title"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -26,7 +26,6 @@
 
     <ScrollView
         android:id="@+id/scrollView2"
-        android:gravity="top"
         android:layout_width="409dp"
         android:layout_height="692dp"
         android:layout_marginBottom="64dp"
