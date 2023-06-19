@@ -273,7 +273,8 @@ class DataStoreViewModel : ViewModel() {
                             // 1度も達成していない場合
                             if(original.complete == null){
                                 var completeList:ArrayList<Complete> = ArrayList<Complete>()
-                                val complete:Complete = Complete.builder().cnId(data.selectCnId).srId(data.selectSrId).history(0).build()
+                                var checkPointList:ArrayList<CheckPoint> = ArrayList<CheckPoint>()
+                                val complete:Complete = Complete.builder().cnId(data.selectCnId).srId(data.selectSrId).history(0).cp(checkPointList).build()
                                 completeList.add(complete)
 
                                 val edited = original.copyOfBuilder()
@@ -294,7 +295,8 @@ class DataStoreViewModel : ViewModel() {
                             else {
                                 val complete = original.complete.find { it.cnId == data.selectCnId && it.srId == data.selectSrId }
                                 if(complete == null){
-                                    val complete:Complete = Complete.builder().cnId(data.selectCnId).srId(data.selectSrId).history(0).build()
+                                    var checkPointList:ArrayList<CheckPoint> = ArrayList<CheckPoint>()
+                                    val complete:Complete = Complete.builder().cnId(data.selectCnId).srId(data.selectSrId).history(0).cp(checkPointList).build()
                                     original.complete.add(complete)
                                 }
                                 // 既に参加済み
