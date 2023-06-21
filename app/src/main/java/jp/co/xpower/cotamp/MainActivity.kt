@@ -138,6 +138,9 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
     private fun updateDataViewModel(user:StwUser){
         val commonDataList = ArrayList<CommonData>()
         for (company in companyList) {
+            if(company.rallyList == null){
+                continue
+            }
             for (rally in company.rallyList) {
 
                 var startAt = 0L
