@@ -29,6 +29,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import aws.smithy.kotlin.runtime.util.length
+import com.amplifyframework.core.Amplify
 import com.amplifyframework.datastore.generated.model.CheckPoint
 import com.amplifyframework.datastore.generated.model.StwCompany
 import com.amplifyframework.datastore.generated.model.StwUser
@@ -278,7 +279,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                 CompletableFuture.allOf(futureCompany, futureUser).thenRun {
                     // 会社・ラリー情報
                     val company = futureCompany.get()
-                    companyList = company.toList() as ArrayList<StwCompany>
+                    companyList = company as ArrayList<StwCompany>
 
                     // ユーザー情報
                     val user = futureUser.get()
@@ -298,8 +299,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                 CompletableFuture.allOf(futureCompany).thenRun {
                     // 会社・ラリー情報
                     val company = futureCompany.get()
-                    companyList = company.toList() as ArrayList<StwCompany>
-
+                    companyList = company as ArrayList<StwCompany>
                     // ローディング完了
                     initLiveData.postValue(true)
                 }
