@@ -102,7 +102,13 @@ class DataStoreViewModel : ViewModel() {
             ObserveQueryOptions(),
             { Log.i("STW", "getCompany established.") },
             Consumer<DataStoreQuerySnapshot<StwCompany>>{
-                if( it.items.length != 0){
+                if(it.items.length == 0){
+                    completableFuture.complete(ArrayList<StwCompany>())
+                }
+                else if(it.items.length == 1){
+                    completableFuture.complete(arrayListOf(it.items[0]))
+                }
+                else {
                     completableFuture.complete(it.items.toList())
                 }
             },
