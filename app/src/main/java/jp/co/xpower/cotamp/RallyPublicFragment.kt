@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
@@ -46,6 +47,7 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
     private lateinit var listener: RecyclerViewListener
     private lateinit var companyList: ArrayList<StwCompany>
     private var rallyList = mutableListOf<Rally>()
+    private var searchWord : String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -180,6 +182,12 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
             l = commonDataViewModel.commonDataList.filter { it.joinFlg } as ArrayList<CommonData>
         }
 
+        if(!searchWord.isNullOrBlank()){
+            l = l.filter {
+                it.title?.matches(Regex(".*${searchWord}.*")) == true
+            } as ArrayList<CommonData>
+        }
+
         //for(list in commonDataViewModel.commonDataList){
         //for (list in commonDataViewModel.commonDataList.filter { it.state == MainActivity.RALLY_STATE_PUBLIC }) {
         for(list in l){
@@ -203,10 +211,9 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
             rallyList.add(rally)
         }
 
-
-
         binding.recyclerView.layoutManager = GridLayoutManager(context, 2)
         binding.recyclerView.adapter = ItemAdapter(rallyList, this)
+        binding.recyclerView.adapter?.notifyDataSetChanged()
 
         listener = parentFragment as? RecyclerViewListener ?: throw IllegalStateException("Parent must implement MyRecyclerViewListener")
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -216,6 +223,35 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
             }
         })
 
+        val escapeList : List<Char> = arrayListOf('\\', '*', '+', '.', '?', '{', '}', '(', ')', '[', ']', '^', '$', '|')
+        binding.search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextChange(newText: String): Boolean {
+                 //text changed
+                if(newText.isNullOrBlank()){
+                    onQueryTextSubmit(newText)
+                }
+                return true
+            }
+            override fun onQueryTextSubmit(query: String): Boolean {
+                // submit button pressed
+                rallyList.clear()
+                searchWord = query
+                for(e in escapeList){
+                    searchWord = searchWord?.replace("$e", "\\$e")
+                }
+                onViewCreated(view, savedInstanceState)
+                return true
+            }
+        })
+
+        binding.search.setOnFocusChangeListener { v, hasFocus ->
+            rallyList.clear()
+            searchWord = (v as SearchView).query.toString()
+            for(e in escapeList){
+                searchWord = searchWord?.replace("$e", "\\$e")
+            }
+            onViewCreated(view, savedInstanceState)
+        }
     }
 
     private inner class ViewHolder internal constructor(private val binding: FragmentRallyListDialogItemBinding, private val clickListener: RallyClickListener) :
