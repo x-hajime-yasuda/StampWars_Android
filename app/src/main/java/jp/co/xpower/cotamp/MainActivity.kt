@@ -255,6 +255,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             val serverTime = getQRDecodeElement!!.jsonObject["data"]!!.jsonPrimitive.long
             commonDataViewModel.serverTime = serverTime
 
+            // 2度目以降の起動
             if(isAgree) {
                 CompletableFuture.allOf(futureCompany, futureUser).thenRun {
                     // 会社・ラリー情報
@@ -275,13 +276,43 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                     initLiveData.postValue(true)
                 }
             }
+            // 初回起動
             else {
                 CompletableFuture.allOf(futureCompany).thenRun {
                     // 会社・ラリー情報
                     val company = futureCompany.get()
                     companyList = company as ArrayList<StwCompany>
                     // ローディング完了
-                    initLiveData.postValue(true)
+                    /////initLiveData.postValue(true)
+
+                    // 規約一時非表示対応
+
+                    // 認証開始 ここから →
+                    val futureAuth = dataStoreViewModel.fetchAuth()
+                    CompletableFuture.allOf(futureAuth).thenRun {
+                        identityId = futureAuth.get()
+                        val futureCreate = dataStoreViewModel.createUser(identityId!!, "名前未設定")
+                        CompletableFuture.allOf(futureCreate).thenRun {
+                            val user = futureCreate.get()
+                            // View更新
+                            updateDataViewModel(user)
+
+                            val mainHandler = Handler(Looper.getMainLooper())
+                            mainHandler.post {
+                                pref.edit().putString(PREF_KEY_USER_ID, identityId).apply()
+                                pref.edit().putBoolean(PREF_KEY_AGREE, true).apply()
+                                termsBinding.root.visibility = View.GONE
+
+                                // メインビュー処理
+                                mainInitialize()
+
+                                // ローディング完了
+                                initLiveData.postValue(true)
+                            }
+                        }
+                    }
+                    // 認証開始 ← ここまで
+
                 }
             }
         }
@@ -353,6 +384,12 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                                         if(cb != null && cb!!.complete != null){
                                             cb!!.complete!!.cp.add(point)
                                         }
+
+                                        // 全ポイント達成チェック
+                                        if(cb!!.cp.length == cb!!.complete!!.cp.length){
+                                            cb!!.completeFlg = true
+                                        }
+
                                         // 画面更新
                                         updateSelected()
 
@@ -381,6 +418,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         // 初期データ取得
         startInitProcess(isAgree)
 
+        /*
         // 初回起動規約同意前
         if(!isAgree){
             // 規約同意レイアウト表示
@@ -411,6 +449,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                 }
             }
         }
+        */
     }
 
     /*

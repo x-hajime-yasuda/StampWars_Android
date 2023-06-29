@@ -28,9 +28,11 @@ public final class StwCompany implements Model {
   public static final QueryField ID = field("StwCompany", "id");
   public static final QueryField NAME = field("StwCompany", "name");
   public static final QueryField RALLY_LIST = field("StwCompany", "rallyList");
+  public static final QueryField _DELETED = field("StwCompany", "_deleted");
   private final @ModelField(targetType="ID", isRequired = true) String id;
   private final @ModelField(targetType="String") String name;
   private final @ModelField(targetType="Rally") List<Rally> rallyList;
+  private final @ModelField(targetType="Boolean") Boolean _deleted;
   private @ModelField(targetType="AWSDateTime", isReadOnly = true) Temporal.DateTime createdAt;
   private @ModelField(targetType="AWSDateTime", isReadOnly = true) Temporal.DateTime updatedAt;
   public String resolveIdentifier() {
@@ -44,7 +46,11 @@ public final class StwCompany implements Model {
   public String getName() {
       return name;
   }
-  
+
+  public Boolean getDeleted() {
+        return _deleted;
+    }
+
   public List<Rally> getRallyList() {
       return rallyList;
   }
@@ -57,10 +63,11 @@ public final class StwCompany implements Model {
       return updatedAt;
   }
   
-  private StwCompany(String id, String name, List<Rally> rallyList) {
+  private StwCompany(String id, String name, List<Rally> rallyList, Boolean _deleted) {
     this.id = id;
     this.name = name;
     this.rallyList = rallyList;
+    this._deleted = _deleted;
   }
   
   @Override
@@ -73,6 +80,7 @@ public final class StwCompany implements Model {
       StwCompany stwCompany = (StwCompany) obj;
       return ObjectsCompat.equals(getId(), stwCompany.getId()) &&
               ObjectsCompat.equals(getName(), stwCompany.getName()) &&
+              ObjectsCompat.equals(getDeleted(), stwCompany.getDeleted()) &&
               ObjectsCompat.equals(getRallyList(), stwCompany.getRallyList()) &&
               ObjectsCompat.equals(getCreatedAt(), stwCompany.getCreatedAt()) &&
               ObjectsCompat.equals(getUpdatedAt(), stwCompany.getUpdatedAt());
@@ -84,6 +92,7 @@ public final class StwCompany implements Model {
     return new StringBuilder()
       .append(getId())
       .append(getName())
+      .append(getDeleted())
       .append(getRallyList())
       .append(getCreatedAt())
       .append(getUpdatedAt())
@@ -97,6 +106,7 @@ public final class StwCompany implements Model {
       .append("StwCompany {")
       .append("id=" + String.valueOf(getId()) + ", ")
       .append("name=" + String.valueOf(getName()) + ", ")
+      .append("_deleted=" + String.valueOf(getDeleted()) + ", ")
       .append("rallyList=" + String.valueOf(getRallyList()) + ", ")
       .append("createdAt=" + String.valueOf(getCreatedAt()) + ", ")
       .append("updatedAt=" + String.valueOf(getUpdatedAt()))
@@ -120,19 +130,22 @@ public final class StwCompany implements Model {
     return new StwCompany(
       id,
       null,
-      null
+      null,
+      false
     );
   }
   
   public CopyOfBuilder copyOfBuilder() {
     return new CopyOfBuilder(id,
       name,
+      _deleted,
       rallyList);
   }
   public interface BuildStep {
     StwCompany build();
     BuildStep id(String id);
     BuildStep name(String name);
+    BuildStep _deleted(Boolean _deleted);
     BuildStep rallyList(List<Rally> rallyList);
   }
   
@@ -140,6 +153,7 @@ public final class StwCompany implements Model {
   public static class Builder implements BuildStep {
     private String id;
     private String name;
+    private Boolean _deleted;
     private List<Rally> rallyList;
     @Override
      public StwCompany build() {
@@ -148,7 +162,8 @@ public final class StwCompany implements Model {
         return new StwCompany(
           id,
           name,
-          rallyList);
+          rallyList,
+          _deleted);
     }
     
     @Override
@@ -156,7 +171,12 @@ public final class StwCompany implements Model {
         this.name = name;
         return this;
     }
-    
+
+    public BuildStep _deleted(Boolean _deleted) {
+        this._deleted = _deleted;
+        return this;
+    }
+
     @Override
      public BuildStep rallyList(List<Rally> rallyList) {
         this.rallyList = rallyList;
@@ -175,9 +195,10 @@ public final class StwCompany implements Model {
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String id, String name, List<Rally> rallyList) {
+    private CopyOfBuilder(String id, String name, Boolean _deleted, List<Rally> rallyList) {
       super.id(id);
-      super.name(name)
+      super.name(name);
+      super._deleted(_deleted)
         .rallyList(rallyList);
     }
     
@@ -185,6 +206,13 @@ public final class StwCompany implements Model {
      public CopyOfBuilder name(String name) {
       return (CopyOfBuilder) super.name(name);
     }
+
+
+      @Override
+      public CopyOfBuilder _deleted(Boolean _deleted) {
+          return (CopyOfBuilder) super._deleted(_deleted);
+      }
+
     
     @Override
      public CopyOfBuilder rallyList(List<Rally> rallyList) {

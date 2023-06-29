@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import aws.smithy.kotlin.runtime.util.length
+import com.amplifyframework.api.graphql.QueryType
+import com.amplifyframework.api.graphql.model.ModelQuery
 import com.amplifyframework.auth.AuthSession
 import com.amplifyframework.auth.cognito.AWSCognitoAuthSession
 import com.amplifyframework.core.Amplify
@@ -95,26 +97,107 @@ class DataStoreViewModel : ViewModel() {
 
     // 会社・ラリー詳細取得
     fun getCompany() :CompletableFuture<List<StwCompany>> {
+
         val completableFuture = CompletableFuture<List<StwCompany>>()
 
-        Amplify.DataStore.observeQuery(
-            StwCompany::class.java,
-            ObserveQueryOptions(),
-            { Log.i("STW", "getCompany established.") },
-            Consumer<DataStoreQuerySnapshot<StwCompany>>{
-                if(it.items.length == 0){
-                    completableFuture.complete(ArrayList<StwCompany>())
+        viewModelScope.launch {
+            /*
+            val onQuerySnapshot: Consumer<DataStoreQuerySnapshot<StwCompany>> =
+                Consumer<DataStoreQuerySnapshot<StwCompany>> { value: DataStoreQuerySnapshot<StwCompany> ->
+                    Log.i("STW", "success on snapshot.")
+                    Log.d("STW", "number of records: " + value.items.size)
+                    Log.d("STW", "sync status: " + value.isSynced)
                 }
-                else if(it.items.length == 1){
-                    completableFuture.complete(arrayListOf(it.items[0]))
-                }
-                else {
-                    completableFuture.complete(it.items.toList())
-                }
-            },
-            { Log.e("STW", "getCompany failed.", it) },
-            { Log.i("STW", "getCompany cancelled.") }
-        )
+            */
+
+            /*
+            Amplify.DataStore.observe(StwCompany::class.java,
+                { Log.i("MyAmplifyApp", "Observation began") },
+                {
+                    val post = it.item()
+                    Log.i("MyAmplifyApp", "Post: $post")
+                },
+                { Log.e("MyAmplifyApp", "Observation failed", it) },
+                { Log.i("MyAmplifyApp", "Observation complete") }
+            )
+            */
+
+            //val predicate = StwCompany._DELETED.ne(true)
+
+
+            Amplify.API.query(
+                ModelQuery.list(StwCompany::class.java),
+                { response ->
+                    val count = response.data.items.count()
+                    val items: Iterable<StwCompany> = response.data.items
+
+                    var j = ArrayList<StwCompany>()
+                    if(count == 0){
+                        completableFuture.complete(j)
+                    }
+                    else if(count == 1){
+                        //val firstItem: StwCompany? = items.firstOrNull()
+                        //j.add(firstItem!!)
+                        completableFuture.complete(arrayListOf(items.firstOrNull()!!))
+                    }
+                    else {
+                        completableFuture.complete(response.data.items.toList())
+                    }
+
+                    /*
+                    if(count == 0){
+                        completableFuture.complete(ArrayList<StwCompany>())
+                    }
+                    else if(count == 1){
+                        completableFuture.complete(arrayListOf(response.data.items[0]))
+                    }
+                    else {
+                        completableFuture.complete(response.data.items.toList())
+                    }
+                    */
+
+
+
+                    response.data.forEach { todo ->
+                        Log.i("MyAmplifyApp", todo.name)
+                    }
+                },
+                { Log.e("MyAmplifyApp", "Query failure", it) }
+            )
+
+            // todo ↑↓入れ替え
+
+
+
+            /*
+            Amplify.DataStore.observeQuery(
+                StwCompany::class.java,
+                ObserveQueryOptions(),
+                {
+                    Log.i("STW", "getCompany established.")
+                },
+                Consumer<DataStoreQuerySnapshot<StwCompany>>{
+
+                    if(it.items.length == 0){
+                        completableFuture.complete(ArrayList<StwCompany>())
+                    }
+                    else if(it.items.length == 1){
+                        completableFuture.complete(arrayListOf(it.items[0]))
+                    }
+                    else {
+                        completableFuture.complete(it.items.toList())
+                    }
+
+                    //onQuerySnapshot
+                },
+                { Log.e("STW", "getCompany failed.", it) },
+                { Log.i("STW", "getCompany cancelled.") }
+            )
+            */
+
+
+        }
+
 
         return completableFuture
     }
