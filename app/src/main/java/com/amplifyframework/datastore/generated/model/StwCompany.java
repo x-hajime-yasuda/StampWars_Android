@@ -22,15 +22,18 @@ import static com.amplifyframework.core.model.query.predicate.QueryField.field;
 /** This is an auto generated class representing the StwCompany type in your schema. */
 @SuppressWarnings("all")
 @ModelConfig(pluralName = "StwCompanies", type = Model.Type.USER, version = 1, authRules = {
+  @AuthRule(allow = AuthStrategy.PRIVATE, provider = "userPools", operations = { ModelOperation.CREATE, ModelOperation.READ, ModelOperation.UPDATE, ModelOperation.DELETE }),
   @AuthRule(allow = AuthStrategy.PUBLIC, provider = "iam", operations = { ModelOperation.CREATE, ModelOperation.UPDATE, ModelOperation.DELETE, ModelOperation.READ })
 })
 public final class StwCompany implements Model {
   public static final QueryField ID = field("StwCompany", "id");
   public static final QueryField NAME = field("StwCompany", "name");
+  public static final QueryField MAX_ENTRIES = field("StwCompany", "maxEntries");
   public static final QueryField RALLY_LIST = field("StwCompany", "rallyList");
   public static final QueryField _DELETED = field("StwCompany", "_deleted");
   private final @ModelField(targetType="ID", isRequired = true) String id;
   private final @ModelField(targetType="String") String name;
+  private final @ModelField(targetType="Int") Integer maxEntries;
   private final @ModelField(targetType="Rally") List<Rally> rallyList;
   private final @ModelField(targetType="Boolean") Boolean _deleted;
   private @ModelField(targetType="AWSDateTime", isReadOnly = true) Temporal.DateTime createdAt;
@@ -47,14 +50,16 @@ public final class StwCompany implements Model {
       return name;
   }
 
-  public Boolean getDeleted() {
-        return _deleted;
-    }
-
+  public Integer getMaxEntries() {
+      return maxEntries;
+  }
+  
   public List<Rally> getRallyList() {
       return rallyList;
   }
-  
+
+  public Boolean getDeleted() {return _deleted; }
+
   public Temporal.DateTime getCreatedAt() {
       return createdAt;
   }
@@ -63,9 +68,10 @@ public final class StwCompany implements Model {
       return updatedAt;
   }
   
-  private StwCompany(String id, String name, List<Rally> rallyList, Boolean _deleted) {
+  private StwCompany(String id, String name, Integer maxEntries, List<Rally> rallyList, Boolean _deleted) {
     this.id = id;
     this.name = name;
+    this.maxEntries = maxEntries;
     this.rallyList = rallyList;
     this._deleted = _deleted;
   }
@@ -80,8 +86,9 @@ public final class StwCompany implements Model {
       StwCompany stwCompany = (StwCompany) obj;
       return ObjectsCompat.equals(getId(), stwCompany.getId()) &&
               ObjectsCompat.equals(getName(), stwCompany.getName()) &&
-              ObjectsCompat.equals(getDeleted(), stwCompany.getDeleted()) &&
+              ObjectsCompat.equals(getMaxEntries(), stwCompany.getMaxEntries()) &&
               ObjectsCompat.equals(getRallyList(), stwCompany.getRallyList()) &&
+              ObjectsCompat.equals(getDeleted(), stwCompany.getDeleted()) &&
               ObjectsCompat.equals(getCreatedAt(), stwCompany.getCreatedAt()) &&
               ObjectsCompat.equals(getUpdatedAt(), stwCompany.getUpdatedAt());
       }
@@ -92,8 +99,9 @@ public final class StwCompany implements Model {
     return new StringBuilder()
       .append(getId())
       .append(getName())
-      .append(getDeleted())
+      .append(getMaxEntries())
       .append(getRallyList())
+      .append(getDeleted())
       .append(getCreatedAt())
       .append(getUpdatedAt())
       .toString()
@@ -106,8 +114,9 @@ public final class StwCompany implements Model {
       .append("StwCompany {")
       .append("id=" + String.valueOf(getId()) + ", ")
       .append("name=" + String.valueOf(getName()) + ", ")
-      .append("_deleted=" + String.valueOf(getDeleted()) + ", ")
+      .append("maxEntries=" + String.valueOf(getMaxEntries()) + ", ")
       .append("rallyList=" + String.valueOf(getRallyList()) + ", ")
+      .append("_deleted=" + String.valueOf(getDeleted()) + ", ")
       .append("createdAt=" + String.valueOf(getCreatedAt()) + ", ")
       .append("updatedAt=" + String.valueOf(getUpdatedAt()))
       .append("}")
@@ -131,6 +140,7 @@ public final class StwCompany implements Model {
       id,
       null,
       null,
+      null,
       false
     );
   }
@@ -138,30 +148,34 @@ public final class StwCompany implements Model {
   public CopyOfBuilder copyOfBuilder() {
     return new CopyOfBuilder(id,
       name,
-      _deleted,
-      rallyList);
+      maxEntries,
+      rallyList,
+      _deleted);
   }
   public interface BuildStep {
     StwCompany build();
     BuildStep id(String id);
     BuildStep name(String name);
-    BuildStep _deleted(Boolean _deleted);
+    BuildStep maxEntries(Integer maxEntries);
     BuildStep rallyList(List<Rally> rallyList);
+    BuildStep _deleted(Boolean _deleted);
   }
   
 
   public static class Builder implements BuildStep {
     private String id;
     private String name;
-    private Boolean _deleted;
+    private Integer maxEntries;
     private List<Rally> rallyList;
-    @Override
+    private Boolean _deleted;
+      @Override
      public StwCompany build() {
         String id = this.id != null ? this.id : UUID.randomUUID().toString();
         
         return new StwCompany(
           id,
           name,
+          maxEntries,
           rallyList,
           _deleted);
     }
@@ -171,18 +185,24 @@ public final class StwCompany implements Model {
         this.name = name;
         return this;
     }
-
-    public BuildStep _deleted(Boolean _deleted) {
-        this._deleted = _deleted;
+    
+    @Override
+     public BuildStep maxEntries(Integer maxEntries) {
+        this.maxEntries = maxEntries;
         return this;
     }
-
+    
     @Override
      public BuildStep rallyList(List<Rally> rallyList) {
         this.rallyList = rallyList;
         return this;
     }
-    
+
+      public BuildStep _deleted(Boolean _deleted) {
+          this._deleted = _deleted;
+          return this;
+      }
+
     /**
      * @param id id
      * @return Current Builder instance, for fluent method chaining
@@ -193,27 +213,30 @@ public final class StwCompany implements Model {
     }
   }
   
-
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String id, String name, Boolean _deleted, List<Rally> rallyList) {
+    private CopyOfBuilder(String id, String name, Integer maxEntries, List<Rally> rallyList, Boolean _deleted) {
       super.id(id);
-      super.name(name);
-      super._deleted(_deleted)
-        .rallyList(rallyList);
+      super.name(name)
+        .maxEntries(maxEntries)
+        .rallyList(rallyList)
+        ._deleted(_deleted);
     }
     
     @Override
      public CopyOfBuilder name(String name) {
       return (CopyOfBuilder) super.name(name);
     }
-
+    
+    @Override
+     public CopyOfBuilder maxEntries(Integer maxEntries) {
+      return (CopyOfBuilder) super.maxEntries(maxEntries);
+    }
 
       @Override
       public CopyOfBuilder _deleted(Boolean _deleted) {
           return (CopyOfBuilder) super._deleted(_deleted);
       }
 
-    
     @Override
      public CopyOfBuilder rallyList(List<Rally> rallyList) {
       return (CopyOfBuilder) super.rallyList(rallyList);

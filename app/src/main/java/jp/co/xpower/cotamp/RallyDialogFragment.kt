@@ -127,6 +127,20 @@ class RallyDialogFragment : DialogFragment() {
             binding.buttonJoin.text = resources.getString(R.string.button_join)
         }
 
+
+        // 開催期間チェック
+        if(data!!.startAt != null && data!!.endAt != null){
+            if(commonDataViewModel.serverTime in data.startAt!!..data.endAt!!){
+            }
+            else {
+                binding.buttonJoin.setBackgroundResource(R.drawable.button_gray)
+                binding.buttonJoin.isEnabled = false
+            }
+        }
+
+
+
+
         // 開催場所
         if(data.place != null){
             val textPlace:String = binding.textPlace.text.toString()

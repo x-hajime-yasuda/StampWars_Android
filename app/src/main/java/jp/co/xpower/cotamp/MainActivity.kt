@@ -76,6 +76,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         const val RALLY_STATE_PUBLIC = 1    // 開催中
         const val RALLY_STATE_JOIN = 2      // 参加中
         const val RALLY_STATE_END = 3       // 終了済み
+        const val RALLY_STATE_PRIVATE = 4    // 開催期間外
 
         // 初期MAP座標(東大)
         const val MAP_DEFAULT_LATITUDE = 35.712914101248444
@@ -173,6 +174,9 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 
                 if(serverTime in startAt..endAt){
                     common.state = RALLY_STATE_PUBLIC    // 開催中
+                }
+                else if(serverTime < startAt ){
+                    common.state = RALLY_STATE_PRIVATE    // 開催期間外
                 }
                 else {
                     common.state = RALLY_STATE_END    // 終了済み
@@ -301,7 +305,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                             mainHandler.post {
                                 pref.edit().putString(PREF_KEY_USER_ID, identityId).apply()
                                 pref.edit().putBoolean(PREF_KEY_AGREE, true).apply()
-                                termsBinding.root.visibility = View.GONE
+                                //termsBinding.root.visibility = View.GONE
 
                                 // メインビュー処理
                                 mainInitialize()
@@ -361,9 +365,18 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
                         val qrSrId = dec.split("_")[1]
                         val qrCpId = dec.split("_")[2]
 
-                        if("${cnId}_${srId}" == "${qrCnId}_${qrSrId}"){
-                            var cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
+                        var cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
 
+                        /*
+                        if(cd != null && cd!!.startAt != null && cd!!.endAt != null){
+                            if(commonDataViewModel.serverTime in cd!!.startAt!!..cd!!.endAt!!){
+                                message = resources.getText(R.string.stamp_camera_qr_rally_private).toString()
+                                showAlertDialog(message)
+                            }
+                        }
+                        */
+
+                        if("${cnId}_${srId}" == "${qrCnId}_${qrSrId}"){
                             var checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == qrCpId}
                             // 達成済み
                             if(checkPoint != null){
