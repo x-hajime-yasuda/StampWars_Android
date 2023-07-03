@@ -12,7 +12,8 @@
         android:orientation="vertical"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="MissingConstraints">
+        tools:ignore="MissingConstraints"
+        android:focusableInTouchMode="true">
 
         <SearchView
             android:id="@+id/search"

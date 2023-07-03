@@ -14,6 +14,8 @@ class TabPagerAdapter(private val param: ArrayList<StwCompany>, fragmentManager:
         RallyPublicFragment.newInstance(MainActivity.RALLY_STATE_END)
     )
 
+    val fragment get() = fragments[0] as RallyPublicFragment
+
     override fun getItemCount() : Int = 3
 
     override fun createFragment(position: Int): Fragment {

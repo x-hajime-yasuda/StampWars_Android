@@ -79,4 +79,7 @@
 
     <string name="not_acquired">未取得</string>
     <string name="info_window_tap">タップで取得</string>
+
+    <string name="notification_title_rally_start">まもなく開催されるラリーのお知らせ</string>
+    <string name="notification_content_rally_start">%sがまもなく開催されます\nタップで詳細を確認</string>
 </resources>

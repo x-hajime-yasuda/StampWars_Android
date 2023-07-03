@@ -1,17 +1,20 @@
 package jp.co.xpower.cotamp
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import jp.co.xpower.cotamp.databinding.ActivityUserSettingListBinding
+
 
 class UserSettingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityUserSettingListBinding
@@ -113,8 +116,14 @@ class UserSettingActivity : AppCompatActivity() {
                     startActivity(intent2UserSetting)
                 }
                 getString(R.string.setting_notification) -> {
-                    val intent2UserSetting = Intent(this@UserSettingActivity, SettingNotificationActivity::class.java)
-                    startActivity(intent2UserSetting)
+//                    val intent2UserSetting = Intent(this@UserSettingActivity, SettingNotificationActivity::class.java)
+//                    startActivity(intent2UserSetting)
+                    val intent = Intent()
+                    intent.action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                    intent.putExtra("app_package", packageName)
+                    intent.putExtra("app_uid", applicationInfo.uid)
+                    intent.putExtra("android.provider.extra.APP_PACKAGE", packageName)
+                    startActivity(intent)
                 }
                 getString(R.string.setting_info) -> {
                     val intent2UserSetting = Intent(this@UserSettingActivity, SettingInfoActivity::class.java)

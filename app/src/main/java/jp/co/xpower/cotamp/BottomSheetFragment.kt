@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver.OnGlobalLayoutListener
 import androidx.viewpager2.widget.ViewPager2
+import com.amplifyframework.datastore.generated.model.Complete.SrIdStep
 import com.amplifyframework.datastore.generated.model.StwCompany
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -41,6 +42,9 @@ class BottomSheetFragment : BottomSheetDialogFragment(), RecyclerViewListener {
             BottomSheetBehavior.from(it)
         }
     }
+
+    private var cnId : String? = null
+    private var srId : String? = null
 
     override fun onStart() {
         super.onStart()
@@ -115,13 +119,31 @@ class BottomSheetFragment : BottomSheetDialogFragment(), RecyclerViewListener {
                 // nothing
             }
         })
+
+        // 通知をタップして開いたとき
+        if(cnId != null && srId != null){
+            val dialog = RallyDialogFragment.newInstance(adapter.fragment, cnId!!, srId!!)
+            dialog.show(parentFragmentManager, "custom_dialog")
+        }
     }
 
     companion object {
         // MainActivityから渡されるパラメータ
+        fun newInstance(itemCount: ArrayList<StwCompany>, cnId : String?, srId : String?): BottomSheetFragment =
+            BottomSheetFragment().apply {
+                companyList = itemCount
+                this.cnId = cnId
+                this.srId = srId
+                arguments = Bundle().apply {
+                    //putInt(ARG_ITEM_COUNT, itemCount)
+                }
+            }
+
         fun newInstance(itemCount: ArrayList<StwCompany>): BottomSheetFragment =
             BottomSheetFragment().apply {
                 companyList = itemCount
+                this.cnId = null
+                this.srId = null
                 arguments = Bundle().apply {
                     //putInt(ARG_ITEM_COUNT, itemCount)
                 }

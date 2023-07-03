@@ -1,10 +1,15 @@
 package jp.co.xpower.cotamp
 
 import android.Manifest
+import android.app.AlarmManager
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -29,7 +34,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import aws.smithy.kotlin.runtime.util.length
-import com.amplifyframework.core.Amplify
 import com.amplifyframework.datastore.generated.model.CheckPoint
 import com.amplifyframework.datastore.generated.model.StwCompany
 import com.amplifyframework.datastore.generated.model.StwUser
@@ -48,16 +52,12 @@ import com.google.android.gms.maps.model.MarkerOptions
 import jp.co.xpower.cotamp.databinding.ActivityMainBinding
 import jp.co.xpower.cotamp.databinding.CameraResultBinding
 import jp.co.xpower.cotamp.databinding.TermsOfServiceBinding
+import jp.co.xpower.cotamp.model.*
 import kotlinx.coroutines.*
+import kotlinx.serialization.json.*
+import java.util.Calendar
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
-
-import jp.co.xpower.cotamp.model.*
-import jp.co.xpower.cotamp.R
-
-import kotlinx.serialization.json.*
-import java.lang.NullPointerException
-import kotlin.collections.ArrayList
 
 
 class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
@@ -435,6 +435,21 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                 }
             }
         }
+
+        // 通知チャンネルの作成
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channelId = AlarmReceiver.ChannelId.RALLY_START
+            val channelName = AlarmReceiver.ChannelName.RALLY_START
+            val notificationManager = getSystemService(
+                NotificationManager::class.java
+            )
+            notificationManager.createNotificationChannel(
+                NotificationChannel(
+                    channelId,
+                    channelName, NotificationManager.IMPORTANCE_LOW
+                )
+            )
+        }
     }
 
     override fun onResume() {
@@ -744,8 +759,9 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         // bgLayoutの設定
         binding.bgLayout.setOnClickListener(null)
 
-        // スタンプカード表示ボタンを最前面に配置
+        // スタンプカード表示ボタンとスタンプカードを最前面に配置
         binding.rlStampCard.bringToFront()
+        binding.layoutStamp.layout.bringToFront()
 
         // 報酬受け取り完了画面の表示
         binding.layoutReward.swReceiveReward.setOnCheckedChangeListener { buttonView, isChecked ->
@@ -806,7 +822,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
             }
         }
 
-        // ユーザ設定画面ボタン（仮）の設定
+        // ユーザ設定画面ボタンの設定
         binding.openUserSetting.setOnClickListener {
             val intent2UserSetting = Intent(this@MainActivity, UserSettingActivity::class.java)
             startActivity(intent2UserSetting)
@@ -837,6 +853,14 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         binding.moveCurrentLocation.setOnClickListener {
             val latLng = LatLng(currentLocation.latitude, currentLocation.longitude)
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, MAP_ZOOM_LEVEL))
+        }
+
+        // 通知をタップしてアプリを開いたとき
+        val cnIdx = intent.getStringExtra("cnId")
+        val srIdx = intent.getStringExtra("srId")
+        println("---------------------- MainActivity cnId = $cnIdx, srId = $srIdx ----------------")
+        if(cnIdx != null && srIdx != null){
+            BottomSheetFragment.newInstance(companyList, cnIdx, srIdx).show(supportFragmentManager, "dialog")
         }
     }
     private fun checkPermission(){

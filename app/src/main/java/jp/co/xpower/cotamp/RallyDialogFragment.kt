@@ -1,7 +1,14 @@
 package jp.co.xpower.cotamp
 
+import android.Manifest
+import android.app.Activity
+import android.app.AlarmManager
 import android.app.Dialog
+import android.app.PendingIntent
 import android.content.ContentValues.TAG
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -12,6 +19,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import androidx.core.app.ActivityCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -22,7 +30,10 @@ import jp.co.xpower.cotamp.model.StorageViewModel
 import jp.co.xpower.cotamp.util.StwUtils
 import jp.co.xpower.cotamp.R
 import java.io.File
+import java.util.Calendar
+import java.util.Date
 import java.util.concurrent.CompletableFuture
+import kotlin.math.pow
 
 
 // TODO: Rename parameter arguments, choose names that match
@@ -152,6 +163,21 @@ class RallyDialogFragment : DialogFragment() {
                     dismiss()
                 }
             }
+
+            // 通知を送る
+            val calendar : Calendar = Calendar.getInstance()
+//            val date = Date(data!!.startAt!! * 1000)
+//            calendar.clear()
+//            calendar.setTime(date)
+//            println("------------------- ${calendar.get(Calendar.YEAR)}年${calendar.get(Calendar.MONTH+1)}月${calendar.get(Calendar.DAY_OF_MONTH)}日　${calendar.get(Calendar.HOUR_OF_DAY)}時${calendar.get(Calendar.MINUTE)}分${calendar.get(Calendar.SECOND)}秒　${calendar.get(Calendar.MILLISECOND)}millisecond ------------------------")
+//            scheduleNotification(getString(R.string.notification_content_rally_start, data!!.title), calendar)
+
+            // 確認用
+            val content = getString(R.string.notification_content_rally_start, data!!.title)
+            val title = getString(R.string.notification_title_rally_start)
+            calendar.timeInMillis = System.currentTimeMillis()
+            calendar.add(Calendar.SECOND, 10)
+            rallyStartNotification(title, content, data!!.srId, calendar)
         }
 
         binding.buttonClose.setOnClickListener {
@@ -159,6 +185,57 @@ class RallyDialogFragment : DialogFragment() {
         }
 
         return binding.root
+    }
+
+    // 通知を送る
+    private fun rallyStartNotification(title : String, content : String, rallyId : String, calendar: Calendar) {
+        val notificationIntent = Intent(this.requireContext(), AlarmReceiver::class.java)
+        notificationIntent.putExtra("title", title)
+        notificationIntent.putExtra("content", content)
+        notificationIntent.putExtra("notificationId", col2int(rallyId))
+        notificationIntent.putExtra("channelId", AlarmReceiver.ChannelId.RALLY_START)
+        notificationIntent.putExtra("cnId", cnId!!)
+        notificationIntent.putExtra("srId", srId!!)
+        val pendingIntent = PendingIntent.getBroadcast(
+            this.requireContext(),
+            col2int(rallyId),
+            notificationIntent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+        val alarmManager : AlarmManager = this.requireActivity().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
+
+        if (context?.let {
+                ActivityCompat.checkSelfPermission(
+                    it,
+                    Manifest.permission.POST_NOTIFICATIONS
+                )
+            } != PackageManager.PERMISSION_GRANTED
+        ) {
+            activity?.let {
+                ActivityCompat.requestPermissions(
+                    it,
+                    arrayOf(
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ),
+                    MainActivity.PERMISSION_REQUEST_CODE
+                )
+            }
+            return
+        }
+    }
+
+    private fun col2int(str : String) : Int{
+        val chars = "0123456789abcdefghijklmnopqrstuvwxyz"
+        val cl = chars.length
+        val sl = str.length
+        var ret = 0
+        var i = 0
+        while(i < sl){
+            ret += (cl.toDouble().pow(i) * chars.indexOf(str[i++])).toInt()
+        }
+
+        return ret
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
