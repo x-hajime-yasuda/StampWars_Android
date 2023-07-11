@@ -1,12 +1,17 @@
 package jp.co.xpower.cotamp.model
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.amplifyframework.api.aws.GsonVariablesSerializer
 import com.amplifyframework.api.graphql.GraphQLRequest
 import com.amplifyframework.api.graphql.SimpleGraphQLRequest
 import com.amplifyframework.core.Amplify
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.UnknownHostException
 import java.util.concurrent.CompletableFuture
 
 class FunctionViewModel : ViewModel() {
@@ -14,7 +19,46 @@ class FunctionViewModel : ViewModel() {
     companion object {
         const val FUNCTION_QR = "qr"
         const val FUNCTION_TIME = "time"
+        const val RETRY_DELAY_MS = 5000L
     }
+
+    fun callFunctionRetry(type: String, param: String): CompletableFuture<String> {
+        val completableFuture = CompletableFuture<String>()
+        var querySuccessful = false
+
+        viewModelScope.launch {
+            while (!querySuccessful) {
+                try {
+                    Amplify.API.query(getRequest(type, param),
+                        { response ->
+                            val data = response.data as String
+
+                            if(!querySuccessful){
+                                completableFuture.complete(data)
+                                querySuccessful = true
+                            }
+                        },
+                        {
+                            if(it.cause is UnknownHostException){
+                            }
+                            else {
+                                completableFuture.completeExceptionally(it)
+                                querySuccessful = true
+                            }
+                        }
+                    )
+                } catch (e: Exception) {
+                    completableFuture.completeExceptionally(e)
+                    querySuccessful = true
+                }
+                delay(RETRY_DELAY_MS)
+            }
+        }
+
+        return completableFuture
+    }
+
+
 
     /*
     * Lambdaを実行

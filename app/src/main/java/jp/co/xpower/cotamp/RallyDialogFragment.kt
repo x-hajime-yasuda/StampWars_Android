@@ -15,12 +15,15 @@ import android.view.Window
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import jp.co.xpower.cotamp.databinding.FragmentRallyDialogBinding
 import jp.co.xpower.cotamp.model.CommonDataViewModel
 import jp.co.xpower.cotamp.model.DataStoreViewModel
 import jp.co.xpower.cotamp.model.StorageViewModel
 import jp.co.xpower.cotamp.util.StwUtils
 import jp.co.xpower.cotamp.R
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.CompletableFuture
 
@@ -152,18 +155,28 @@ class RallyDialogFragment : DialogFragment() {
 
         // 選択・参加ボタン押下
         binding.buttonJoin.setOnClickListener {
-            // 参加中のラリーの選択
-            if(data!!.joinFlg){
-                dismissListener?.onSelect(data.cnId, data.srId)
-                dismiss()
-            }
-            // 未参加のラリーには参加する
-            else {
-                commonDataViewModel.select(cnId!!, srId!!)
-                val completableFuture = dataStoreViewModel.rallyJoining(commonDataViewModel)
-                CompletableFuture.allOf(completableFuture).thenRun {
-                    dismissListener?.onSelect(cnId!!, srId!!)
+
+            // ロードダイアログ
+            val loadingDialog = (activity as MainActivity).showLoadingDialog()
+            lifecycleScope.launch {
+                loadingDialog.show()
+                delay(1000)
+
+                // 参加中のラリーの選択
+                if(data!!.joinFlg){
+                    dismissListener?.onSelect(data.cnId, data.srId)
+                    loadingDialog.dismiss()
                     dismiss()
+                }
+                // 未参加のラリーには参加する
+                else {
+                    commonDataViewModel.select(cnId!!, srId!!)
+                    val completableFuture = dataStoreViewModel.rallyJoining(commonDataViewModel)
+                    CompletableFuture.allOf(completableFuture).thenRun {
+                        loadingDialog.dismiss()
+                        dismissListener?.onSelect(cnId!!, srId!!)
+                        dismiss()
+                    }
                 }
             }
         }

@@ -84,8 +84,12 @@ class DataStoreViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 Amplify.DataStore.start(
-                    { completableFuture.complete(true) },
-                    { completableFuture.completeExceptionally(it) }
+                    {
+                        completableFuture.complete(true)
+                    },
+                    {
+                        completableFuture.completeExceptionally(it)
+                    }
                 )
             } catch (e: Exception) {
                 completableFuture.completeExceptionally(e)
@@ -162,7 +166,9 @@ class DataStoreViewModel : ViewModel() {
                         Log.i("MyAmplifyApp", todo.name)
                     }
                 },
-                { Log.e("MyAmplifyApp", "Query failure", it) }
+                {
+                    Log.e("MyAmplifyApp", "Query failure", it)
+                }
             )
 
             // todo ↑↓入れ替え
@@ -223,7 +229,21 @@ class DataStoreViewModel : ViewModel() {
         return completableFuture
     }
 
+    fun getUserQuery(identityId:String) :CompletableFuture<StwUser> {
+        val completableFuture = CompletableFuture<StwUser>()
 
+        Amplify.API.query(ModelQuery.get(StwUser::class.java, identityId),
+            {
+                completableFuture.complete(it.data)
+                Log.i("STW", "Query results = ${(it.data as StwUser).name}")
+            },
+            {
+                Log.e("STW", "Query failed", it)
+            }
+        );
+
+        return completableFuture
+    }
 
     fun updateRewardAsyncTask(id:String, cnId:String, srId:String, isReward:Boolean) : CompletableFuture<Boolean>{
         val completableFuture = CompletableFuture<Boolean>()

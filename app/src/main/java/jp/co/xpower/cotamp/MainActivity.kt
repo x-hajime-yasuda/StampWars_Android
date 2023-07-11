@@ -2,6 +2,8 @@ package jp.co.xpower.cotamp
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -10,8 +12,11 @@ import android.text.Spanned
 import android.text.style.AbsoluteSizeSpan
 import android.util.Log
 import android.view.GestureDetector
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
@@ -42,6 +47,7 @@ import java.util.concurrent.Executors
 
 import jp.co.xpower.cotamp.model.*
 import jp.co.xpower.cotamp.R
+import jp.co.xpower.cotamp.databinding.FragmentCustomSplashScreenBinding
 
 import kotlinx.serialization.json.*
 import kotlin.collections.ArrayList
@@ -53,6 +59,9 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
     private lateinit var googleMap: GoogleMap
     private lateinit var mapFragment: SupportMapFragment
     private lateinit var cameraLauncher: ActivityResultLauncher<Intent>
+
+    private lateinit var splashBinding: FragmentCustomSplashScreenBinding
+
 
     private var identityId:String? = null
     private var identityNewId:String = ""
@@ -241,10 +250,16 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         }
 
         // サーバータイム取得
-        val futureFunction = functionViewModel.callFunction(FunctionViewModel.FUNCTION_TIME, "")
+        val futureFunction = functionViewModel.callFunctionRetry(FunctionViewModel.FUNCTION_TIME, "")
 
         val future = dataStoreViewModel.initDataStore()
-        CompletableFuture.allOf(future, futureFunction).thenRun {
+        CompletableFuture.allOf(future, futureFunction)
+            .handle { _, exception ->
+                if (exception != null) {
+                    Log.i("STW", "ex.")
+                }
+            }
+            .thenRun {
             Log.i("STW", "DataStore.initDataStore.")
 
             val futureCompany = dataStoreViewModel.getCompany()
@@ -339,6 +354,18 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             splashScreenView.remove()
         }
 
+        // スプラッシュの裏でローディング画面を用意する
+        splashBinding = FragmentCustomSplashScreenBinding.inflate(layoutInflater)
+        setContentView(splashBinding.root)
+
+        // 3秒後にスプラッシュを強制非表示にする。データ取得が完了すると自動的にローディングが上書きされてメイン表示される
+        var runnable = Runnable {
+            initLiveData.postValue(true)
+        }
+        var handler = Handler(Looper.getMainLooper())
+        handler?.postDelayed(runnable!!, 3000)
+
+
         super.onCreate(savedInstanceState)
 
         // Camera結果の取得
@@ -348,8 +375,12 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
             if (result.resultCode == RESULT_OK) {
                 val text = result.data?.getStringExtra(MainActivity.EXTRA_MESSAGE) ?: ""
 
-                val futureFunction = functionViewModel.callFunction(FunctionViewModel.FUNCTION_QR, text)
+                val loadingDialog = showLoadingDialog()
+                loadingDialog.show()
+                //val futureFunction = functionViewModel.callFunction(FunctionViewModel.FUNCTION_QR, text)
+                val futureFunction = functionViewModel.callFunctionRetry(FunctionViewModel.FUNCTION_QR, text)
                 CompletableFuture.allOf(futureFunction).thenRun {
+                    loadingDialog.dismiss()
                     val data: String = futureFunction.get()
                     val jsonElement = Json.parseToJsonElement(data)
                     val getQRDecodeJsonString: String? = jsonElement.jsonObject["getQRDecode"]?.jsonPrimitive?.content
@@ -656,9 +687,15 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
         // 報酬受け取り完了画面の表示
         binding.layoutReward.swReceiveReward.setOnCheckedChangeListener { buttonView, isChecked ->
             if(isChecked){
+                // ロードダイアログ
+                val loadingDialog = showLoadingDialog()
+                loadingDialog.show()
+
                 val selected = getSelectId()
                 val completableFuture = dataStoreViewModel.updateRewardAsyncTask(identityId!!, selected.first, selected.second, true)
                 CompletableFuture.allOf(completableFuture).thenRun {
+
+                    loadingDialog.dismiss()
 
                     // ViewModel更新
                     var cb:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
@@ -717,6 +754,47 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener {
 //            val intent2UserSetting = Intent(this@MainActivity, UserSettingActivity::class.java)
 //            startActivity(intent2UserSetting)
 //        }
+    }
+
+    fun showLoadingDialog() :AlertDialog{
+        //val builder = AlertDialog.Builder(this, R.style.TransparentDialog)
+        val builder = AlertDialog.Builder(this)
+
+        val dialogBinding = FragmentCustomSplashScreenBinding.inflate(layoutInflater)
+
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 50, 50, 50)
+        }
+
+        val progressBar = ProgressBar(this).apply {
+            isIndeterminate = true
+            setPadding(50, 50, 50, 50)
+            //indeterminateTintList = ColorStateList.valueOf(Color.WHITE)
+        }
+        val textView = TextView(this).apply {
+            text = "Loading..."
+            //setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+            setPadding(0, 20, 0, 0)
+        }
+        val button = Button(this, null, R.style.Stw_button).apply {
+            text = "リトライ"
+            setPadding(50, 50, 50, 50)
+            setOnClickListener {
+                // ボタンがクリックされた時の処理を記述
+            }
+        }
+
+        layout.addView(progressBar)
+        layout.addView(textView)
+        layout.addView(button)
+
+        //builder.setView(layout)
+        builder.setView(dialogBinding.root)
+        builder.setCancelable(false) // 画面外タッチでキャンセルできないようにする
+
+        return builder.create()
     }
 
     private inner class SwTouchListener : View.OnTouchListener {
