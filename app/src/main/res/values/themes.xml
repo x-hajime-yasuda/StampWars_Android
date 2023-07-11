@@ -58,12 +58,18 @@
         <item name="android:fontFamily">@font/zen_kaku_gothic_antique_regular</item>
     </style>
 
+    <style name="TransparentDialog" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
 
 
     <style name="SplashTheme" parent="Theme.SplashScreen.IconBackground">
         <item name="windowSplashScreenBackground">@color/white</item>
         <item name="windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/sumi1</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/cotamp</item>
         <item name="postSplashScreenTheme">@style/Theme.Stw</item>
         <item name="windowSplashScreenAnimationDuration">2000</item>
     </style>

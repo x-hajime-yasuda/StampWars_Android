@@ -1,15 +1,16 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
 }
 
 
 android {
-    namespace 'jp.co.xpower.app.stw'
+    namespace 'jp.co.xpower.cotamp'
     compileSdk 33
 
     defaultConfig {
-        applicationId "jp.co.xpower.app.stw"
+        applicationId "jp.co.xpower.cotamp"
         minSdk 25
         targetSdk 33
         versionCode 1
@@ -43,6 +44,10 @@ android {
 }
 
 dependencies {
+
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+
 
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'

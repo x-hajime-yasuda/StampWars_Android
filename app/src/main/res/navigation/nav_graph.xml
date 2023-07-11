@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/FirstFragment"
-        android:name="jp.co.xpower.app.stw.FirstFragment"
+        android:name="jp.co.xpower.app.cotamp.FirstFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first">
 
@@ -17,7 +17,7 @@
     </fragment>
     <fragment
         android:id="@+id/SecondFragment"
-        android:name="jp.co.xpower.app.stw.SecondFragment"
+        android:name="jp.co.xpower.app.cotamp.SecondFragment"
         android:label="@string/second_fragment_label"
         tools:layout="@layout/fragment_second">
 

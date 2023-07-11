@@ -96,7 +96,8 @@
                                 android:layout_height="62dp"
                                 android:layout_gravity="bottom|right"
                                 android:layout_marginRight="5dp"
-                                android:src="@drawable/joinning" />
+                                android:layout_marginBottom="5dp"
+                                android:src="@drawable/joined" />
                         </FrameLayout>
 
                         <TextView
