@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -28,6 +29,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.children
 import androidx.lifecycle.MutableLiveData
@@ -49,6 +51,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import jp.co.xpower.cotamp.AlarmReceiver.Companion.col2int
 import jp.co.xpower.cotamp.databinding.ActivityMainBinding
 import jp.co.xpower.cotamp.databinding.CameraResultBinding
 import jp.co.xpower.cotamp.databinding.TermsOfServiceBinding
@@ -364,25 +367,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                             }
                             else {
                                 // 達成処理開始
-                                val futureStamp = dataStoreViewModel.rallyStamping(commonDataViewModel, qrCpId)
-                                CompletableFuture.allOf(futureStamp).thenRun {
-                                    // 選択中ラリーの表示更新
-                                    val mainHandler = Handler(Looper.getMainLooper())
-                                    mainHandler.post {
-                                        // 選択中ラリーの表示更新
-                                        // 達成したらcommonDataListに選択CommonDataのチェックポイントを追加する
-                                        var cb:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
-                                        val point:CheckPoint = CheckPoint.builder().cpId(qrCpId).build()
-                                        if(cb != null && cb!!.complete != null){
-                                            cb!!.complete!!.cp.add(point)
-                                        }
-                                        // 画面更新
-                                        updateSelected()
-
-                                        message = resources.getText(R.string.stamp_camera_qr_get).toString()
-                                        showAlertDialog(message)
-                                    }
-                                }
+                                getStamp(cnId, srId, qrCpId)
                             }
                         }
                         else {
@@ -438,16 +423,14 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
 
         // 通知チャンネルの作成
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channelId = AlarmReceiver.ChannelId.RALLY_START
-            val channelName = AlarmReceiver.ChannelName.RALLY_START
             val notificationManager = getSystemService(
                 NotificationManager::class.java
             )
             notificationManager.createNotificationChannel(
-                NotificationChannel(
-                    channelId,
-                    channelName, NotificationManager.IMPORTANCE_LOW
-                )
+                NotificationChannel(AlarmReceiver.ChannelId.RALLY_START, AlarmReceiver.ChannelName.RALLY_START, NotificationManager.IMPORTANCE_LOW)
+            )
+            notificationManager.createNotificationChannel(
+                NotificationChannel(AlarmReceiver.ChannelId.GET_STAMP_FROM_LOCATION, AlarmReceiver.ChannelName.GET_STAMP_FROM_LOCATION, NotificationManager.IMPORTANCE_LOW)
             )
         }
     }
@@ -676,6 +659,20 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                         notAcquiredLayout.visibility = View.VISIBLE
                     }
 
+                    // 取得可能通知を送る
+                    val notificationIntent = Intent(this@MainActivity, AlarmReceiver::class.java)
+                    notificationIntent.putExtra("title", getString(R.string.notification_getable, marker.title))
+                    notificationIntent.putExtra("notificationId", col2int(marker.id))
+                    notificationIntent.putExtra("channelId", AlarmReceiver.ChannelId.GET_STAMP_FROM_LOCATION)
+                    val pendingIntent = PendingIntent.getBroadcast(
+                        this@MainActivity,
+                        col2int(marker.id),
+                        notificationIntent,
+                        PendingIntent.FLAG_IMMUTABLE
+                    )
+                    val alarmManager : AlarmManager = this@MainActivity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), pendingIntent)
+
                     return view
                 }
 
@@ -693,26 +690,13 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     val cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
                     val checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == cpId}
 
-                    // 達成済み
-                    if(checkPoint == null) {
-                        val futureStamp = dataStoreViewModel.rallyStamping(commonDataViewModel, cpId)
-                        CompletableFuture.allOf(futureStamp).thenRun {
-                            val mainHandler = Handler(Looper.getMainLooper())
-                            mainHandler.post {
-                                // 選択中ラリーの表示更新
-                                // 達成したらcommonDataListに選択CommonDataのチェックポイントを追加する
-                                val cb: CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
-                                val point: CheckPoint = CheckPoint.builder().cpId(cpId).build()
-                                if (cb != null && cb!!.complete != null) {
-                                    cb!!.complete!!.cp.add(point)
-                                }
-                                // 画面更新
-                                updateSelected()
+                    with(NotificationManagerCompat.from(this@MainActivity)) {
+                        cancel(col2int(it.id))
+                    }
 
-                                val message = resources.getText(R.string.stamp_camera_qr_get).toString()
-                                showAlertDialog(message)
-                            }
-                        }
+                    // 未達成の場合取得
+                    if(checkPoint == null) {
+                        getStamp(cnId, srId, cpId)
                     }
                 }
             }
@@ -756,12 +740,44 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         binding.layoutReward.btBackStampList.setOnClickListener(OnButtonClick())
         binding.layoutReceived.btBackStampList.setOnClickListener(OnButtonClick())
 
+        // キーワード入力画面の設定
+//        val cnId = commonDataViewModel.selectCnId
+//        val srId = commonDataViewModel.selectSrId
+//        val cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
+//        if(cd == null){
+//            binding.layoutKeyword.btSend.visibility = View.GONE
+//        }
+        binding.openKeywordForm.setOnClickListener(OnButtonClick())
+        binding.layoutKeyword.layout.setOnClickListener(null)
+        binding.layoutKeyword.btSend.setOnClickListener {
+            val inputKeyword = binding.layoutKeyword.etKeyWord.text.toString()
+            val cnId = commonDataViewModel.selectCnId
+            val srId = commonDataViewModel.selectSrId
+            val cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
+
+            if(cd == null){
+                showAlertDialog("ラリーが選択されていません")
+                binding.layoutKeyword.etKeyWord.setText("")
+                OnButtonClick().onClick(findViewById(R.id.button_close))
+                return@setOnClickListener
+            }
+
+            val matchedPoint = cd?.cp?.find { it.cpName == inputKeyword }
+            val checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == matchedPoint?.cpId}
+            if(matchedPoint == null){
+                showAlertDialog("無効なキーワードです")
+            } else if(checkPoint != null){
+                showAlertDialog(getString(R.string.stamp_camera_qr_already_point))
+            } else {
+                getStamp(cnId, srId, matchedPoint.cpId)
+            }
+
+            binding.layoutKeyword.etKeyWord.setText("")
+            OnButtonClick().onClick(findViewById(R.id.button_close))
+        }
+
         // bgLayoutの設定
         binding.bgLayout.setOnClickListener(null)
-
-        // スタンプカード表示ボタンとスタンプカードを最前面に配置
-        binding.rlStampCard.bringToFront()
-        binding.layoutStamp.layout.bringToFront()
 
         // 報酬受け取り完了画面の表示
         binding.layoutReward.swReceiveReward.setOnCheckedChangeListener { buttonView, isChecked ->
@@ -858,7 +874,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         // 通知をタップしてアプリを開いたとき
         val cnIdx = intent.getStringExtra("cnId")
         val srIdx = intent.getStringExtra("srId")
-        println("---------------------- MainActivity cnId = $cnIdx, srId = $srIdx ----------------")
         if(cnIdx != null && srIdx != null){
             BottomSheetFragment.newInstance(companyList, cnIdx, srIdx).show(supportFragmentManager, "dialog")
         }
@@ -941,6 +956,33 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         }
     }
 
+    private fun openUrl(url : String){
+        val uri : Uri = Uri.parse(url)
+        val intent = Intent(Intent.ACTION_VIEW, uri)
+        startActivity(intent)
+    }
+
+    private fun getStamp(cnId : String, srId : String, cpId : String){
+        val futureStamp = dataStoreViewModel.rallyStamping(commonDataViewModel, cpId)
+        CompletableFuture.allOf(futureStamp).thenRun {
+            val mainHandler = Handler(Looper.getMainLooper())
+            mainHandler.post {
+                // 選択中ラリーの表示更新
+                // 達成したらcommonDataListに選択CommonDataのチェックポイントを追加する
+                val cb: CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
+                val point: CheckPoint = CheckPoint.builder().cpId(cpId).build()
+                if (cb != null && cb!!.complete != null) {
+                    cb!!.complete!!.cp.add(point)
+                }
+                // 画面更新
+                updateSelected()
+
+                val message = resources.getText(R.string.stamp_camera_qr_get).toString()
+                showAlertDialog(message)
+            }
+        }
+    }
+
     private inner class SwTouchListener : View.OnTouchListener {
         override fun onTouch(v: View, event: MotionEvent): Boolean {
             mGestureDetector.onTouchEvent(event)
@@ -968,6 +1010,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         val receivedLayout = binding.layoutReceived.layout
         val bgLayout = binding.bgLayout
         val btStampList = binding.btStampList
+        val keywordLayout = binding.layoutKeyword.layout
         override fun onClick(v: View) {
             when(v.id){
                 // スタンプカード表示切り替え
@@ -1033,12 +1076,18 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     }
                 }
 
+                // キーワード入力フォームを表示
+                R.id.openKeywordForm -> {
+                    keywordLayout.visibility = View.VISIBLE
+                }
+
                 //閉じるボタン
                 R.id.button_close -> {
                     rewardLayout.visibility = View.GONE
                     receivedLayout.visibility = View.GONE
                     stampLayout.visibility = View.GONE
                     bgLayout.visibility = View.GONE
+                    keywordLayout.visibility = View.GONE
                     btStampList.isClickable = true
                 }
             }

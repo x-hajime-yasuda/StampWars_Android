@@ -15,11 +15,13 @@ import kotlin.math.pow
 
 class AlarmReceiver : BroadcastReceiver() {
     object ChannelId{
-        val RALLY_START = "CHANNEL_ID_RALLY_START"
+        val RALLY_START = "RALLY_START"
+        val GET_STAMP_FROM_LOCATION = "GET_STAMP_FROM_LOCATION"
     }
 
     object ChannelName{
         val RALLY_START = "ラリー開始時間が近くなったら通知"
+        val GET_STAMP_FROM_LOCATION = "位置情報からスタンプの取得が可能なときに通知"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -27,25 +29,31 @@ class AlarmReceiver : BroadcastReceiver() {
         val content = intent.getStringExtra("content")
         val notificationId = intent.getIntExtra("notificationId", 0)
         val channelId = intent.getStringExtra("channelId")!!
-        val cnId = intent.getStringExtra("cnId")!!
-        val srId = intent.getStringExtra("srId")!!
-
-        val intent2 = Intent(context, MainActivity::class.java).apply {
+        val cnId = intent.getStringExtra("cnId")
+        val srId = intent.getStringExtra("srId")
+        val intentMain = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 
-
-        intent2.putExtra("cnId", cnId)
-        intent2.putExtra("srId", srId)
-        val pendingIntent = PendingIntent.getActivity(context, col2int("$cnId$srId"), intent2, PendingIntent.FLAG_IMMUTABLE)
 
         var builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.stamp_icon)
             .setContentTitle(title)
             .setContentText(content)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setContentIntent(pendingIntent)
             .setAutoCancel(true)
+
+        if(channelId == ChannelId.RALLY_START){
+            intentMain.putExtra("cnId", cnId)
+            intentMain.putExtra("srId", srId)
+            val pendingIntent = PendingIntent.getActivity(context, col2int("$cnId$srId"), intentMain, PendingIntent.FLAG_IMMUTABLE)
+            builder.setContentIntent(pendingIntent)
+        }
+
+//        if(channelId == ChannelId.GET_STAMP_FROM_LOCATION){
+//            val pendingIntent = PendingIntent.getActivity(context, col2int("$cnId$srId"), intentMain, PendingIntent.FLAG_IMMUTABLE)
+//            builder.setContentIntent(pendingIntent)
+//        }
 
         with(NotificationManagerCompat.from(context)) {
             if (ActivityCompat.checkSelfPermission(
@@ -66,16 +74,19 @@ class AlarmReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun col2int(str : String) : Int{
-        val chars = "0123456789abcdefghijklmnopqrstuvwxyz"
-        val cl = chars.length
-        val sl = str.length
-        var ret = 0
-        var i = 0
-        while(i < sl){
-            ret += (cl.toDouble().pow(i) * chars.indexOf(str[i++])).toInt()
-        }
 
-        return ret
+    companion object{
+        fun col2int(str : String) : Int{
+            val chars = "0123456789abcdefghijklmnopqrstuvwxyz"
+            val cl = chars.length
+            val sl = str.length
+            var ret = 0
+            var i = 0
+            while(i < sl){
+                ret += (cl.toDouble().pow(i) * chars.indexOf(str[i++])).toInt()
+            }
+
+            return ret
+        }
     }
 }

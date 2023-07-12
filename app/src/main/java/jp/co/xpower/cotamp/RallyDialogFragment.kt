@@ -23,6 +23,7 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import jp.co.xpower.cotamp.AlarmReceiver.Companion.col2int
 import jp.co.xpower.cotamp.databinding.FragmentRallyDialogBinding
 import jp.co.xpower.cotamp.model.CommonDataViewModel
 import jp.co.xpower.cotamp.model.DataStoreViewModel
@@ -223,19 +224,6 @@ class RallyDialogFragment : DialogFragment() {
             }
             return
         }
-    }
-
-    private fun col2int(str : String) : Int{
-        val chars = "0123456789abcdefghijklmnopqrstuvwxyz"
-        val cl = chars.length
-        val sl = str.length
-        var ret = 0
-        var i = 0
-        while(i < sl){
-            ret += (cl.toDouble().pow(i) * chars.indexOf(str[i++])).toInt()
-        }
-
-        return ret
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {

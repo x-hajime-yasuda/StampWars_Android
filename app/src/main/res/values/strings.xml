@@ -82,4 +82,8 @@
 
     <string name="notification_title_rally_start">まもなく開催されるラリーのお知らせ</string>
     <string name="notification_content_rally_start">%sがまもなく開催されます\nタップで詳細を確認</string>
+    <string name="notification_getable">%sのスタンプを取得可能です</string>
+
+    <string name="tv_keyword">キーワードからスタンプを取得</string>
+    <string name="keyword_send">送信</string>
 </resources>
