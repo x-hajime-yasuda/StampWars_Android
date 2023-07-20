@@ -1,16 +1,21 @@
 package jp.co.xpower.cotamp
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import aws.sdk.kotlin.services.s3.model.ReplicationStatus
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
 import kotlin.math.pow
 
 class AlarmReceiver : BroadcastReceiver() {
@@ -46,7 +51,7 @@ class AlarmReceiver : BroadcastReceiver() {
         if(channelId == ChannelId.RALLY_START){
             intentMain.putExtra("cnId", cnId)
             intentMain.putExtra("srId", srId)
-            val pendingIntent = PendingIntent.getActivity(context, col2int("$cnId$srId"), intentMain, PendingIntent.FLAG_IMMUTABLE)
+            val pendingIntent = PendingIntent.getActivity(context, notificationId, intentMain, PendingIntent.FLAG_IMMUTABLE)
             builder.setContentIntent(pendingIntent)
         }
 
@@ -76,17 +81,25 @@ class AlarmReceiver : BroadcastReceiver() {
 
 
     companion object{
-        fun col2int(str : String) : Int{
-            val chars = "0123456789abcdefghijklmnopqrstuvwxyz"
+        fun col2int(targetStr : String) : Int{
+            val chars = "0123456789"
             val cl = chars.length
-            val sl = str.length
-            var ret = 0
-            var i = 0
-            while(i < sl){
-                ret += (cl.toDouble().pow(i) * chars.indexOf(str[i++])).toInt()
+            var num = 0
+            var i = 1
+            val str = targetStr.replace("-", "")
+            println(str)
+            while (i < str.length) {
+                num += (cl.toDouble().pow(i.toDouble()) * chars.indexOf(str[i++])).toInt()
             }
 
-            return ret
+            return num
+        }
+
+
+        fun getNotificationId() : Int{
+            val sdf = SimpleDateFormat("MMddHHmmss", Locale.getDefault())
+            val date = Date(System.currentTimeMillis())
+            return sdf.format(date).toInt()
         }
     }
 }

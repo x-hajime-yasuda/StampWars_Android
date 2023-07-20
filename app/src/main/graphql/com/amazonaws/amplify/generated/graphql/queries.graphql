@@ -1,0 +1,165 @@
+# this is an auto generated file. This will be overwritten
+
+query GetQREncode($qr: String) {
+  getQREncode(qr: $qr)
+}
+
+query GetQRDecode($qr: String) {
+  getQRDecode(qr: $qr)
+}
+
+query GetServerTime {
+  getServerTime
+}
+
+query GetStwUser($id: ID!) {
+  getStwUser(id: $id) {
+    id
+    name
+    complete {
+      cnId
+      srId
+      history
+      got
+      __typename
+    }
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+
+query ListStwUsers(
+  $filter: ModelStwUserFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listStwUsers(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      name
+      createdAt
+      updatedAt
+      _version
+      _deleted
+      _lastChangedAt
+      __typename
+    }
+    nextToken
+    startedAt
+    __typename
+  }
+}
+
+query SyncStwUsers(
+  $filter: ModelStwUserFilterInput
+  $limit: Int
+  $nextToken: String
+  $lastSync: AWSTimestamp
+) {
+  syncStwUsers(
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+    lastSync: $lastSync
+  ) {
+    items {
+      id
+      name
+      createdAt
+      updatedAt
+      _version
+      _deleted
+      _lastChangedAt
+      __typename
+    }
+    nextToken
+    startedAt
+    __typename
+  }
+}
+
+query GetStwCompany($id: ID!) {
+  getStwCompany(id: $id) {
+    id
+    name
+    maxEntries
+    rallyList {
+      srId
+      title
+      startAt
+      endAt
+      displayStartAt
+      displayEndAt
+      place
+      total
+      detail
+      status
+      completeCount
+      rewardTitle
+      rewardDetail
+      __typename
+    }
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+
+query ListStwCompanies(
+  $filter: ModelStwCompanyFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listStwCompanies(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      name
+      maxEntries
+      createdAt
+      updatedAt
+      _version
+      _deleted
+      _lastChangedAt
+      __typename
+    }
+    nextToken
+    startedAt
+    __typename
+  }
+}
+
+query SyncStwCompanies(
+  $filter: ModelStwCompanyFilterInput
+  $limit: Int
+  $nextToken: String
+  $lastSync: AWSTimestamp
+) {
+  syncStwCompanies(
+    filter: $filter
+    limit: $limit
+    nextToken: $nextToken
+    lastSync: $lastSync
+  ) {
+    items {
+      id
+      name
+      maxEntries
+      createdAt
+      updatedAt
+      _version
+      _deleted
+      _lastChangedAt
+      __typename
+    }
+    nextToken
+    startedAt
+    __typename
+  }
+}

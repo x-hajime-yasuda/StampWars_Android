@@ -6,24 +6,37 @@
     },
     "AppSync": {
         "Default": {
-            "ApiUrl": "https://vcn46jcn6bgsdomp5oavso7t4y.appsync-api.ap-northeast-1.amazonaws.com/graphql",
+            "ApiUrl": "https://qdp4ihmoqjbhvpfjamqkla4twu.appsync-api.ap-northeast-1.amazonaws.com/graphql",
             "Region": "ap-northeast-1",
             "AuthMode": "AWS_IAM",
-            "ClientDatabasePrefix": "stw_AWS_IAM"
+            "ClientDatabasePrefix": "cotamp_AWS_IAM"
+        },
+        "cotamp_API_KEY": {
+            "ApiUrl": "https://qdp4ihmoqjbhvpfjamqkla4twu.appsync-api.ap-northeast-1.amazonaws.com/graphql",
+            "Region": "ap-northeast-1",
+            "AuthMode": "API_KEY",
+            "ApiKey": "da2-75g7l3pgxnf5rnzvu46gfm7f6u",
+            "ClientDatabasePrefix": "cotamp_API_KEY"
+        },
+        "cotamp_AMAZON_COGNITO_USER_POOLS": {
+            "ApiUrl": "https://qdp4ihmoqjbhvpfjamqkla4twu.appsync-api.ap-northeast-1.amazonaws.com/graphql",
+            "Region": "ap-northeast-1",
+            "AuthMode": "AMAZON_COGNITO_USER_POOLS",
+            "ClientDatabasePrefix": "cotamp_AMAZON_COGNITO_USER_POOLS"
         }
     },
     "CredentialsProvider": {
         "CognitoIdentity": {
             "Default": {
-                "PoolId": "ap-northeast-1:3e9f9f5e-b664-4d1c-892b-6d41a9072018",
+                "PoolId": "ap-northeast-1:d68827ec-799a-4000-9bab-d4c8187c96bf",
                 "Region": "ap-northeast-1"
             }
         }
     },
     "CognitoUserPool": {
         "Default": {
-            "PoolId": "ap-northeast-1_p8zb4ROK1",
-            "AppClientId": "1nsb174bemcb0epkn1jf59q3uo",
+            "PoolId": "ap-northeast-1_Rc4cHhi7k",
+            "AppClientId": "es5jnkbrfj7ps6mmemfo0og2s",
             "Region": "ap-northeast-1"
         }
     },
@@ -46,13 +59,13 @@
                 "EMAIL"
             ],
             "verificationMechanisms": [
-                "PHONE_NUMBER"
+                "EMAIL"
             ]
         }
     },
     "S3TransferUtility": {
         "Default": {
-            "Bucket": "stw74f219dc163a42049a7db3eefc2dfbb5112016-develop",
+            "Bucket": "cotampb1f2112061b54669841d78c27a27a57120305-dev",
             "Region": "ap-northeast-1"
         }
     }

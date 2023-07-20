@@ -21,6 +21,7 @@ import jp.co.xpower.cotamp.model.CommonDataViewModel
 import jp.co.xpower.cotamp.model.StorageViewModel
 import jp.co.xpower.cotamp.R
 import java.io.File
+import javax.sql.CommonDataSource
 
 // TODO: Rename parameter arguments, choose names that match
 private const val ARG_PARAM = "param"
@@ -183,6 +184,13 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
             l = commonDataViewModel.commonDataList.filter { it.joinFlg } as ArrayList<CommonData>
         }
 
+        // 表示期間内のもののみ表示
+        for(c : CommonData in l) {
+            println("start:${c.displayStartAt}, end:${c.displayEndAt}, current:${System.currentTimeMillis()}, status:{${c.state}}")
+        }
+        l = l.filter { it.state != MainActivity.RALLY_STATE_HIDE } as ArrayList<CommonData>
+
+        // 部分一致検索
         if(!searchWord.isNullOrBlank()){
             l = l.filter {
                 it.title?.matches(Regex(".*${searchWord}.*")) == true

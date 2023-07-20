@@ -13,17 +13,19 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import jp.co.xpower.cotamp.AlarmReceiver.Companion.col2int
+import jp.co.xpower.cotamp.AlarmReceiver.Companion.getNotificationId
 import jp.co.xpower.cotamp.databinding.FragmentRallyDialogBinding
 import jp.co.xpower.cotamp.model.CommonDataViewModel
 import jp.co.xpower.cotamp.model.DataStoreViewModel
@@ -163,22 +165,28 @@ class RallyDialogFragment : DialogFragment() {
                     dismissListener?.onSelect(cnId!!, srId!!)
                     dismiss()
                 }
+
+                // 通知を送る
+                val calendar : Calendar = Calendar.getInstance()
+                val date = Date(data!!.startAt!! * 1000)
+                val content = getString(R.string.notification_content_rally_start, data!!.title)
+                val title = getString(R.string.notification_title_rally_start)
+                calendar.clear()
+                calendar.time = date
+                println("------------------- ${calendar.get(Calendar.YEAR)}年${calendar.get(Calendar.MONTH)+1}月${calendar.get(Calendar.DAY_OF_MONTH)}日　${calendar.get(Calendar.HOUR_OF_DAY)}時${calendar.get(Calendar.MINUTE)}分${calendar.get(Calendar.SECOND)}秒　${calendar.get(Calendar.MILLISECOND)}millisecond ------------------------")
+                if(System.currentTimeMillis() < date.time){
+                    rallyStartNotification(title, content, calendar)
+                }
             }
 
-            // 通知を送る
-            val calendar : Calendar = Calendar.getInstance()
-//            val date = Date(data!!.startAt!! * 1000)
-//            calendar.clear()
-//            calendar.setTime(date)
-//            println("------------------- ${calendar.get(Calendar.YEAR)}年${calendar.get(Calendar.MONTH+1)}月${calendar.get(Calendar.DAY_OF_MONTH)}日　${calendar.get(Calendar.HOUR_OF_DAY)}時${calendar.get(Calendar.MINUTE)}分${calendar.get(Calendar.SECOND)}秒　${calendar.get(Calendar.MILLISECOND)}millisecond ------------------------")
-//            scheduleNotification(getString(R.string.notification_content_rally_start, data!!.title), calendar)
+
 
             // 確認用
-            val content = getString(R.string.notification_content_rally_start, data!!.title)
-            val title = getString(R.string.notification_title_rally_start)
-            calendar.timeInMillis = System.currentTimeMillis()
-            calendar.add(Calendar.SECOND, 10)
-            rallyStartNotification(title, content, data!!.srId, calendar)
+//            val content = getString(R.string.notification_content_rally_start, data!!.title)
+//            val title = getString(R.string.notification_title_rally_start)
+//            calendar.timeInMillis = System.currentTimeMillis()
+//            calendar.add(Calendar.SECOND, 10)
+//            rallyStartNotification(title, content, calendar)
         }
 
         binding.buttonClose.setOnClickListener {
@@ -189,17 +197,19 @@ class RallyDialogFragment : DialogFragment() {
     }
 
     // 通知を送る
-    private fun rallyStartNotification(title : String, content : String, rallyId : String, calendar: Calendar) {
+    private fun rallyStartNotification(title : String, content : String, calendar: Calendar) {
         val notificationIntent = Intent(this.requireContext(), AlarmReceiver::class.java)
+        val notificationId = getNotificationId()
+        println("-------------- $notificationId ------------------")
         notificationIntent.putExtra("title", title)
         notificationIntent.putExtra("content", content)
-        notificationIntent.putExtra("notificationId", col2int(rallyId))
+        notificationIntent.putExtra("notificationId", notificationId)
         notificationIntent.putExtra("channelId", AlarmReceiver.ChannelId.RALLY_START)
         notificationIntent.putExtra("cnId", cnId!!)
         notificationIntent.putExtra("srId", srId!!)
         val pendingIntent = PendingIntent.getBroadcast(
             this.requireContext(),
-            col2int(rallyId),
+            notificationId,
             notificationIntent,
             PendingIntent.FLAG_IMMUTABLE
         )

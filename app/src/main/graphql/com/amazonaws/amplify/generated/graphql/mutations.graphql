@@ -1,0 +1,169 @@
+# this is an auto generated file. This will be overwritten
+
+mutation CreateStwUser(
+  $input: CreateStwUserInput!
+  $condition: ModelStwUserConditionInput
+) {
+  createStwUser(input: $input, condition: $condition) {
+    id
+    name
+    complete {
+      cnId
+      srId
+      history
+      got
+      __typename
+    }
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+
+mutation UpdateStwUser(
+  $input: UpdateStwUserInput!
+  $condition: ModelStwUserConditionInput
+) {
+  updateStwUser(input: $input, condition: $condition) {
+    id
+    name
+    complete {
+      cnId
+      srId
+      history
+      got
+      __typename
+    }
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+
+mutation DeleteStwUser(
+  $input: DeleteStwUserInput!
+  $condition: ModelStwUserConditionInput
+) {
+  deleteStwUser(input: $input, condition: $condition) {
+    id
+    name
+    complete {
+      cnId
+      srId
+      history
+      got
+      __typename
+    }
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+
+mutation CreateStwCompany(
+  $input: CreateStwCompanyInput!
+  $condition: ModelStwCompanyConditionInput
+) {
+  createStwCompany(input: $input, condition: $condition) {
+    id
+    name
+    maxEntries
+    rallyList {
+      srId
+      title
+      startAt
+      endAt
+      displayStartAt
+      displayEndAt
+      place
+      total
+      detail
+      status
+      completeCount
+      rewardTitle
+      rewardDetail
+      __typename
+    }
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+
+mutation UpdateStwCompany(
+  $input: UpdateStwCompanyInput!
+  $condition: ModelStwCompanyConditionInput
+) {
+  updateStwCompany(input: $input, condition: $condition) {
+    id
+    name
+    maxEntries
+    rallyList {
+      srId
+      title
+      startAt
+      endAt
+      displayStartAt
+      displayEndAt
+      place
+      total
+      detail
+      status
+      completeCount
+      rewardTitle
+      rewardDetail
+      __typename
+    }
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+
+mutation DeleteStwCompany(
+  $input: DeleteStwCompanyInput!
+  $condition: ModelStwCompanyConditionInput
+) {
+  deleteStwCompany(input: $input, condition: $condition) {
+    id
+    name
+    maxEntries
+    rallyList {
+      srId
+      title
+      startAt
+      endAt
+      displayStartAt
+      displayEndAt
+      place
+      total
+      detail
+      status
+      completeCount
+      rewardTitle
+      rewardDetail
+      __typename
+    }
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}

@@ -51,7 +51,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
-import jp.co.xpower.cotamp.AlarmReceiver.Companion.col2int
 import jp.co.xpower.cotamp.databinding.ActivityMainBinding
 import jp.co.xpower.cotamp.databinding.CameraResultBinding
 import jp.co.xpower.cotamp.databinding.TermsOfServiceBinding
@@ -97,6 +96,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         const val RALLY_STATE_PUBLIC = 1    // 開催中
         const val RALLY_STATE_JOIN = 2      // 参加中
         const val RALLY_STATE_END = 3       // 終了済み
+        const val RALLY_STATE_HIDE = 4      // 表示しない
 
         // 初期MAP座標(東大)
         const val MAP_DEFAULT_LATITUDE = 35.712914101248444
@@ -129,14 +129,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
     }
 
     override fun onMarkerClick(marker: Marker): Boolean {
-
-        val m = marker.title
-
-        if(marker.equals(currentMarker)){
-            return true
-        }
-
-        return false
+        return (marker == currentMarker)
     }
 
     // アプリ全体共通ビューモデル
@@ -179,6 +172,16 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     endAt = rally.endAt.secondsSinceEpoch
                 }
 
+                var displayStartAt = 0L
+                if(rally.displayStartAt != null){
+                    displayStartAt = rally.displayStartAt.secondsSinceEpoch
+                }
+
+                var displayEndAt = 0L
+                if(rally.displayEndAt != null){
+                    displayEndAt = rally.displayEndAt.secondsSinceEpoch
+                }
+
                 val common = CommonData()
                 common.cnId = company.id
                 common.srId = rally.srId
@@ -189,6 +192,8 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                 common.rewardDetail = rally.rewardDetail
                 common.startAt = startAt
                 common.endAt = endAt
+                common.displayStartAt = displayStartAt
+                common.displayEndAt = displayEndAt
 
                 val serverTime = commonDataViewModel.serverTime
 
@@ -202,6 +207,9 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                 }
                 else {
                     common.state = RALLY_STATE_END    // 終了済み
+                }
+                if( !(serverTime in displayStartAt..displayEndAt) ){
+                    common.state = RALLY_STATE_HIDE // 表示しない
                 }
 
                 // チェックポイント数とユーザーデータのチェックポイント数の一致でラリー達成
@@ -660,18 +668,18 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     }
 
                     // 取得可能通知を送る
-                    val notificationIntent = Intent(this@MainActivity, AlarmReceiver::class.java)
-                    notificationIntent.putExtra("title", getString(R.string.notification_getable, marker.title))
-                    notificationIntent.putExtra("notificationId", col2int(marker.id))
-                    notificationIntent.putExtra("channelId", AlarmReceiver.ChannelId.GET_STAMP_FROM_LOCATION)
-                    val pendingIntent = PendingIntent.getBroadcast(
-                        this@MainActivity,
-                        col2int(marker.id),
-                        notificationIntent,
-                        PendingIntent.FLAG_IMMUTABLE
-                    )
-                    val alarmManager : AlarmManager = this@MainActivity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), pendingIntent)
+//                    val notificationIntent = Intent(this@MainActivity, AlarmReceiver::class.java)
+//                    notificationIntent.putExtra("title", getString(R.string.notification_getable, marker.title))
+//                    notificationIntent.putExtra("notificationId", col2int(marker.id))
+//                    notificationIntent.putExtra("channelId", AlarmReceiver.ChannelId.GET_STAMP_FROM_LOCATION)
+//                    val pendingIntent = PendingIntent.getBroadcast(
+//                        this@MainActivity,
+//                        col2int(marker.id),
+//                        notificationIntent,
+//                        PendingIntent.FLAG_IMMUTABLE
+//                    )
+//                    val alarmManager : AlarmManager = this@MainActivity.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+//                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), pendingIntent)
 
                     return view
                 }
@@ -690,9 +698,9 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     val cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
                     val checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == cpId}
 
-                    with(NotificationManagerCompat.from(this@MainActivity)) {
-                        cancel(col2int(it.id))
-                    }
+//                    with(NotificationManagerCompat.from(this@MainActivity)) {
+//                        cancel(col2int(it.id))
+//                    }
 
                     // 未達成の場合取得
                     if(checkPoint == null) {

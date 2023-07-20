@@ -13,6 +13,8 @@ public final class Rally {
   private final String title;
   private final Temporal.Timestamp startAt;
   private final Temporal.Timestamp endAt;
+  private final Temporal.Timestamp displayStartAt;
+  private final Temporal.Timestamp displayEndAt;
   private final String place;
   private final Integer total;
   private final String detail;
@@ -35,6 +37,14 @@ public final class Rally {
   
   public Temporal.Timestamp getEndAt() {
       return endAt;
+  }
+  
+  public Temporal.Timestamp getDisplayStartAt() {
+      return displayStartAt;
+  }
+  
+  public Temporal.Timestamp getDisplayEndAt() {
+      return displayEndAt;
   }
   
   public String getPlace() {
@@ -69,11 +79,13 @@ public final class Rally {
       return cp;
   }
   
-  private Rally(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, String place, Integer total, String detail, Integer status, Integer completeCount, String rewardTitle, String rewardDetail, List<CheckPoint> cp) {
+  private Rally(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, Temporal.Timestamp displayStartAt, Temporal.Timestamp displayEndAt, String place, Integer total, String detail, Integer status, Integer completeCount, String rewardTitle, String rewardDetail, List<CheckPoint> cp) {
     this.srId = srId;
     this.title = title;
     this.startAt = startAt;
     this.endAt = endAt;
+    this.displayStartAt = displayStartAt;
+    this.displayEndAt = displayEndAt;
     this.place = place;
     this.total = total;
     this.detail = detail;
@@ -96,6 +108,8 @@ public final class Rally {
               ObjectsCompat.equals(getTitle(), rally.getTitle()) &&
               ObjectsCompat.equals(getStartAt(), rally.getStartAt()) &&
               ObjectsCompat.equals(getEndAt(), rally.getEndAt()) &&
+              ObjectsCompat.equals(getDisplayStartAt(), rally.getDisplayStartAt()) &&
+              ObjectsCompat.equals(getDisplayEndAt(), rally.getDisplayEndAt()) &&
               ObjectsCompat.equals(getPlace(), rally.getPlace()) &&
               ObjectsCompat.equals(getTotal(), rally.getTotal()) &&
               ObjectsCompat.equals(getDetail(), rally.getDetail()) &&
@@ -114,6 +128,8 @@ public final class Rally {
       .append(getTitle())
       .append(getStartAt())
       .append(getEndAt())
+      .append(getDisplayStartAt())
+      .append(getDisplayEndAt())
       .append(getPlace())
       .append(getTotal())
       .append(getDetail())
@@ -135,6 +151,8 @@ public final class Rally {
       title,
       startAt,
       endAt,
+      displayStartAt,
+      displayEndAt,
       place,
       total,
       detail,
@@ -150,6 +168,8 @@ public final class Rally {
     BuildStep title(String title);
     BuildStep startAt(Temporal.Timestamp startAt);
     BuildStep endAt(Temporal.Timestamp endAt);
+    BuildStep displayStartAt(Temporal.Timestamp displayStartAt);
+    BuildStep displayEndAt(Temporal.Timestamp displayEndAt);
     BuildStep place(String place);
     BuildStep total(Integer total);
     BuildStep detail(String detail);
@@ -166,6 +186,8 @@ public final class Rally {
     private String title;
     private Temporal.Timestamp startAt;
     private Temporal.Timestamp endAt;
+    private Temporal.Timestamp displayStartAt;
+    private Temporal.Timestamp displayEndAt;
     private String place;
     private Integer total;
     private String detail;
@@ -182,6 +204,8 @@ public final class Rally {
           title,
           startAt,
           endAt,
+          displayStartAt,
+          displayEndAt,
           place,
           total,
           detail,
@@ -213,6 +237,18 @@ public final class Rally {
     @Override
      public BuildStep endAt(Temporal.Timestamp endAt) {
         this.endAt = endAt;
+        return this;
+    }
+    
+    @Override
+     public BuildStep displayStartAt(Temporal.Timestamp displayStartAt) {
+        this.displayStartAt = displayStartAt;
+        return this;
+    }
+    
+    @Override
+     public BuildStep displayEndAt(Temporal.Timestamp displayEndAt) {
+        this.displayEndAt = displayEndAt;
         return this;
     }
     
@@ -267,11 +303,13 @@ public final class Rally {
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, String place, Integer total, String detail, Integer status, Integer completeCount, String rewardTitle, String rewardDetail, List<CheckPoint> cp) {
+    private CopyOfBuilder(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, Temporal.Timestamp displayStartAt, Temporal.Timestamp displayEndAt, String place, Integer total, String detail, Integer status, Integer completeCount, String rewardTitle, String rewardDetail, List<CheckPoint> cp) {
       super.srId(srId)
         .title(title)
         .startAt(startAt)
         .endAt(endAt)
+        .displayStartAt(displayStartAt)
+        .displayEndAt(displayEndAt)
         .place(place)
         .total(total)
         .detail(detail)
@@ -300,6 +338,16 @@ public final class Rally {
     @Override
      public CopyOfBuilder endAt(Temporal.Timestamp endAt) {
       return (CopyOfBuilder) super.endAt(endAt);
+    }
+    
+    @Override
+     public CopyOfBuilder displayStartAt(Temporal.Timestamp displayStartAt) {
+      return (CopyOfBuilder) super.displayStartAt(displayStartAt);
+    }
+    
+    @Override
+     public CopyOfBuilder displayEndAt(Temporal.Timestamp displayEndAt) {
+      return (CopyOfBuilder) super.displayEndAt(displayEndAt);
     }
     
     @Override

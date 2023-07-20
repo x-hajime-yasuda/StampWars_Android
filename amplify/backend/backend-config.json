@@ -1,17 +1,35 @@
 {
   "api": {
-    "stw": {
-      "dependsOn": [],
+    "cotamp": {
+      "dependsOn": [
+        {
+          "attributes": [
+            "UserPoolId"
+          ],
+          "category": "auth",
+          "resourceName": "cotampb08be104"
+        }
+      ],
       "output": {
         "authConfig": {
-          "additionalAuthenticationProviders": [],
-          "defaultAuthentication": {
-            "apiKeyConfig": {
-              "apiKeyExpirationDate": "2024-04-26T07:04:25.096Z",
-              "apiKeyExpirationDays": 365,
-              "description": ""
+          "additionalAuthenticationProviders": [
+            {
+              "apiKeyConfig": {
+                "apiKeyExpirationDate": "2023-07-19T08:21:11.808Z",
+                "apiKeyExpirationDays": 7,
+                "description": ""
+              },
+              "authenticationType": "API_KEY"
             },
-            "authenticationType": "API_KEY"
+            {
+              "authenticationType": "AMAZON_COGNITO_USER_POOLS",
+              "userPoolConfig": {
+                "userPoolId": "authcotampb08be104"
+              }
+            }
+          ],
+          "defaultAuthentication": {
+            "authenticationType": "AWS_IAM"
           }
         }
       },
@@ -20,7 +38,7 @@
     }
   },
   "auth": {
-    "stwb208c92f": {
+    "cotampb08be104": {
       "customAuth": false,
       "dependsOn": [],
       "frontendAuthConfig": {
@@ -40,11 +58,18 @@
           "EMAIL"
         ],
         "verificationMechanisms": [
-          "PHONE_NUMBER"
+          "EMAIL"
         ]
       },
       "providerPlugin": "awscloudformation",
       "service": "Cognito"
+    }
+  },
+  "storage": {
+    "s3db24b344": {
+      "dependsOn": [],
+      "providerPlugin": "awscloudformation",
+      "service": "S3"
     }
   }
 }

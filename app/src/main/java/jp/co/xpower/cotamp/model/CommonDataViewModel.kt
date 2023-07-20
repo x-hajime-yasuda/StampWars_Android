@@ -55,6 +55,8 @@ data class CommonData(
     var rewardDetail: String? = "",
     var startAt:Long? = 0,
     var endAt:Long? = 0,
+    var displayStartAt:Long? = 0,
+    var displayEndAt:Long? = 0,
     var state: Int = 0,
     var cp: ArrayList<CheckPoint> = ArrayList<CheckPoint>(),
     var complete: Complete? = null,
