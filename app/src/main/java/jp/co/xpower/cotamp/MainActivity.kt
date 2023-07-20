@@ -194,6 +194,8 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                 common.endAt = endAt
                 common.displayStartAt = displayStartAt
                 common.displayEndAt = displayEndAt
+                common.isLocationAvailable = rally.isLocationAvailable
+                common.isKeywordAvailable = rally.isKeywordAvailable
 
                 val serverTime = commonDataViewModel.serverTime
 
@@ -549,6 +551,13 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
 
             // MAP更新
             updateMap()
+
+            // キーワード入力ボタンの表示切替
+            if(cd.isKeywordAvailable){
+                binding.openKeywordForm.visibility = View.VISIBLE
+            } else {
+                binding.openKeywordForm.visibility = View.GONE
+            }
 
             // 獲得数だけ強調表示
             binding.layoutStamp.textGet.changeSizeOfText(completeCount.toString(), cd.cp.count().toString(),38)
@@ -927,6 +936,16 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
 
     private fun isGetable(latitude: Double, longitude: Double) : Boolean {
         var results = FloatArray(3)
+        val cnId = commonDataViewModel.selectCnId
+        val srId = commonDataViewModel.selectSrId
+        val cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
+
+        // 位置情報からのスタンプ取得が制限されている場合
+        if (cd != null) {
+            if(!cd.isLocationAvailable){
+                return false
+            }
+        }
 
         // currentLocationが初期化されていなければfalse
         if(!this::currentLocation.isInitialized){

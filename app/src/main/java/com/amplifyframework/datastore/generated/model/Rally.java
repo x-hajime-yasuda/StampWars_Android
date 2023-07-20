@@ -23,6 +23,8 @@ public final class Rally {
   private final String rewardTitle;
   private final String rewardDetail;
   private final List<CheckPoint> cp;
+  private final Boolean isLocationAvailable;
+  private final Boolean isKeywordAvailable;
   public String getSrId() {
       return srId;
   }
@@ -79,7 +81,15 @@ public final class Rally {
       return cp;
   }
   
-  private Rally(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, Temporal.Timestamp displayStartAt, Temporal.Timestamp displayEndAt, String place, Integer total, String detail, Integer status, Integer completeCount, String rewardTitle, String rewardDetail, List<CheckPoint> cp) {
+  public Boolean getIsLocationAvailable() {
+      return isLocationAvailable;
+  }
+  
+  public Boolean getIsKeywordAvailable() {
+      return isKeywordAvailable;
+  }
+  
+  private Rally(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, Temporal.Timestamp displayStartAt, Temporal.Timestamp displayEndAt, String place, Integer total, String detail, Integer status, Integer completeCount, String rewardTitle, String rewardDetail, List<CheckPoint> cp, Boolean isLocationAvailable, Boolean isKeywordAvailable) {
     this.srId = srId;
     this.title = title;
     this.startAt = startAt;
@@ -94,6 +104,8 @@ public final class Rally {
     this.rewardTitle = rewardTitle;
     this.rewardDetail = rewardDetail;
     this.cp = cp;
+    this.isLocationAvailable = isLocationAvailable;
+    this.isKeywordAvailable = isKeywordAvailable;
   }
   
   @Override
@@ -117,7 +129,9 @@ public final class Rally {
               ObjectsCompat.equals(getCompleteCount(), rally.getCompleteCount()) &&
               ObjectsCompat.equals(getRewardTitle(), rally.getRewardTitle()) &&
               ObjectsCompat.equals(getRewardDetail(), rally.getRewardDetail()) &&
-              ObjectsCompat.equals(getCp(), rally.getCp());
+              ObjectsCompat.equals(getCp(), rally.getCp()) &&
+              ObjectsCompat.equals(getIsLocationAvailable(), rally.getIsLocationAvailable()) &&
+              ObjectsCompat.equals(getIsKeywordAvailable(), rally.getIsKeywordAvailable());
       }
   }
   
@@ -138,6 +152,8 @@ public final class Rally {
       .append(getRewardTitle())
       .append(getRewardDetail())
       .append(getCp())
+      .append(getIsLocationAvailable())
+      .append(getIsKeywordAvailable())
       .toString()
       .hashCode();
   }
@@ -160,7 +176,9 @@ public final class Rally {
       completeCount,
       rewardTitle,
       rewardDetail,
-      cp);
+      cp,
+      isLocationAvailable,
+      isKeywordAvailable);
   }
   public interface BuildStep {
     Rally build();
@@ -178,6 +196,8 @@ public final class Rally {
     BuildStep rewardTitle(String rewardTitle);
     BuildStep rewardDetail(String rewardDetail);
     BuildStep cp(List<CheckPoint> cp);
+    BuildStep isLocationAvailable(Boolean isLocationAvailable);
+    BuildStep isKeywordAvailable(Boolean isKeywordAvailable);
   }
   
 
@@ -196,6 +216,8 @@ public final class Rally {
     private String rewardTitle;
     private String rewardDetail;
     private List<CheckPoint> cp;
+    private Boolean isLocationAvailable;
+    private Boolean isKeywordAvailable;
     @Override
      public Rally build() {
         
@@ -213,7 +235,9 @@ public final class Rally {
           completeCount,
           rewardTitle,
           rewardDetail,
-          cp);
+          cp,
+          isLocationAvailable,
+          isKeywordAvailable);
     }
     
     @Override
@@ -299,11 +323,23 @@ public final class Rally {
         this.cp = cp;
         return this;
     }
+    
+    @Override
+     public BuildStep isLocationAvailable(Boolean isLocationAvailable) {
+        this.isLocationAvailable = isLocationAvailable;
+        return this;
+    }
+    
+    @Override
+     public BuildStep isKeywordAvailable(Boolean isKeywordAvailable) {
+        this.isKeywordAvailable = isKeywordAvailable;
+        return this;
+    }
   }
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, Temporal.Timestamp displayStartAt, Temporal.Timestamp displayEndAt, String place, Integer total, String detail, Integer status, Integer completeCount, String rewardTitle, String rewardDetail, List<CheckPoint> cp) {
+    private CopyOfBuilder(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, Temporal.Timestamp displayStartAt, Temporal.Timestamp displayEndAt, String place, Integer total, String detail, Integer status, Integer completeCount, String rewardTitle, String rewardDetail, List<CheckPoint> cp, Boolean isLocationAvailable, Boolean isKeywordAvailable) {
       super.srId(srId)
         .title(title)
         .startAt(startAt)
@@ -317,7 +353,9 @@ public final class Rally {
         .completeCount(completeCount)
         .rewardTitle(rewardTitle)
         .rewardDetail(rewardDetail)
-        .cp(cp);
+        .cp(cp)
+        .isLocationAvailable(isLocationAvailable)
+        .isKeywordAvailable(isKeywordAvailable);
     }
     
     @Override
@@ -388,6 +426,16 @@ public final class Rally {
     @Override
      public CopyOfBuilder cp(List<CheckPoint> cp) {
       return (CopyOfBuilder) super.cp(cp);
+    }
+    
+    @Override
+     public CopyOfBuilder isLocationAvailable(Boolean isLocationAvailable) {
+      return (CopyOfBuilder) super.isLocationAvailable(isLocationAvailable);
+    }
+    
+    @Override
+     public CopyOfBuilder isKeywordAvailable(Boolean isKeywordAvailable) {
+      return (CopyOfBuilder) super.isKeywordAvailable(isKeywordAvailable);
     }
   }
   

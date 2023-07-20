@@ -62,5 +62,7 @@ data class CommonData(
     var complete: Complete? = null,
     var joinFlg: Boolean = false,
     var completeFlg: Boolean = false,
-    var got: Boolean = false
+    var got: Boolean = false,
+    var isLocationAvailable: Boolean = false,
+    var isKeywordAvailable: Boolean = false
 )

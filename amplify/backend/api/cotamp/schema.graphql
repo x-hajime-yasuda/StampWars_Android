@@ -39,6 +39,8 @@ type Rally {
 	rewardTitle: String
 	rewardDetail: String
 	cp: [CheckPoint]
+	isLocationAvailable: Boolean
+	isKeywordAvailable: Boolean
 }
 
 type StwUser @model @auth(rules: [
