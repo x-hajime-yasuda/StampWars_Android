@@ -19,14 +19,6 @@
             android:layout_height="match_parent"
             tools:layout="@layout/maps_fragment" />
 
-        <LinearLayout
-            android:id="@+id/bgLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#80404040"
-            android:orientation="horizontal"
-            android:visibility="gone"/>
-
         <include
             android:id="@+id/layout_selected"
             layout="@layout/rally_selected"
@@ -97,16 +89,25 @@
             android:layout_gravity="bottom|end"
             android:layout_marginEnd="32dp"
             android:layout_marginBottom="200dp"
+            android:visibility="gone"
             app:srcCompat="@drawable/button_open_keyword_form" />
 
-        <include
-            android:id="@+id/layoutStamp"
-            layout="@layout/stamp_list"
+        <LinearLayout
+            android:id="@+id/bgLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#80404040"
+            android:orientation="horizontal"
             android:visibility="gone" />
 
         <include
-            android:id="@+id/layoutReward"
-            layout="@layout/receive_reward"
+            android:id="@+id/layoutRewardUrl"
+            layout="@layout/reward_url"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutKeyword"
+            layout="@layout/keyword_form"
             android:visibility="gone" />
 
         <include
@@ -115,8 +116,13 @@
             android:visibility="gone" />
 
         <include
-            android:id="@+id/layoutKeyword"
-            layout="@layout/keyword_form"
+            android:id="@+id/layoutReward"
+            layout="@layout/receive_reward"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/layoutStamp"
+            layout="@layout/stamp_list"
             android:visibility="gone" />
     </FrameLayout>
 

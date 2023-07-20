@@ -38,6 +38,7 @@ type Rally {
 	completeCount: Int
 	rewardTitle: String
 	rewardDetail: String
+	rewardUrl: String
 	cp: [CheckPoint]
 	isLocationAvailable: Boolean
 	isKeywordAvailable: Boolean

@@ -86,4 +86,7 @@
 
     <string name="tv_keyword">キーワードからスタンプを取得</string>
     <string name="keyword_send">送信</string>
+    <string name="show_reward_url">景品URLを表示する</string>
+    <string name="reward_url">景品URL</string>
+    <string name="open_url">URLを開く</string>
 </resources>

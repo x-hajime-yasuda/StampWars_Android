@@ -53,6 +53,7 @@ data class CommonData(
     var detail: String? = "",
     var rewardTitle: String? = "",
     var rewardDetail: String? = "",
+    var rewardUrl: String? = null,
     var startAt:Long? = 0,
     var endAt:Long? = 0,
     var displayStartAt:Long? = 0,

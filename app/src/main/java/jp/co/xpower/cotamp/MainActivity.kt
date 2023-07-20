@@ -1,10 +1,8 @@
 package jp.co.xpower.cotamp
 
 import android.Manifest
-import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -29,7 +27,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.children
 import androidx.lifecycle.MutableLiveData
@@ -57,7 +54,6 @@ import jp.co.xpower.cotamp.databinding.TermsOfServiceBinding
 import jp.co.xpower.cotamp.model.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.*
-import java.util.Calendar
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 
@@ -190,6 +186,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                 common.detail = rally.detail
                 common.rewardTitle = rally.rewardTitle
                 common.rewardDetail = rally.rewardDetail
+                common.rewardUrl = rally.rewardUrl
                 common.startAt = startAt
                 common.endAt = endAt
                 common.displayStartAt = displayStartAt
@@ -232,6 +229,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                         }
                     }
                 }
+                println("${common.title} : ${common.rewardUrl}")
                 commonDataList.add(common)
             }
         }
@@ -652,11 +650,9 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     }
                     normalLayout.visibility = View.VISIBLE
 
-
-                    val cnId = commonDataViewModel.selectCnId
-                    val srId = commonDataViewModel.selectSrId
                     val cpId = markerList.get(marker)!!.cpId
-                    val cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
+                    val selected = getSelectId()
+                    var cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
                     val checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == cpId}
 
 
@@ -758,12 +754,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         binding.layoutReceived.btBackStampList.setOnClickListener(OnButtonClick())
 
         // キーワード入力画面の設定
-//        val cnId = commonDataViewModel.selectCnId
-//        val srId = commonDataViewModel.selectSrId
-//        val cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
-//        if(cd == null){
-//            binding.layoutKeyword.btSend.visibility = View.GONE
-//        }
         binding.openKeywordForm.setOnClickListener(OnButtonClick())
         binding.layoutKeyword.layout.setOnClickListener(null)
         binding.layoutKeyword.btSend.setOnClickListener {
@@ -793,6 +783,11 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
             OnButtonClick().onClick(findViewById(R.id.button_close))
         }
 
+        // URLを開くボタンの設定
+        binding.layoutRewardUrl.btOpenUrl.setOnClickListener {
+            getRewardUrl()?.let { it1 -> openUrl(it1) }
+        }
+
         // bgLayoutの設定
         binding.bgLayout.setOnClickListener(null)
 
@@ -809,9 +804,15 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
 
                     val mainHandler = Handler(Looper.getMainLooper())
                     mainHandler.post {
+                        val rewardUrl = getRewardUrl()
+
                         binding.layoutReward.layout.visibility = View.GONE
-                        binding.layoutReceived.layout.visibility = View.VISIBLE
-                        binding.layoutReward.swReceiveReward.isClickable = false
+                        if(!rewardUrl.isNullOrBlank()){
+                            binding.layoutRewardUrl.layout.visibility = View.VISIBLE
+                            binding.layoutRewardUrl.tvUrl.text = rewardUrl
+                        } else {
+                            binding.layoutReceived.layout.visibility = View.VISIBLE
+                        }
                     }
                 }
             }
@@ -819,10 +820,12 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         mGestureDetector = GestureDetector(this@MainActivity, MGestureListener())
         binding.layoutReward.swReceiveReward.setOnTouchListener(SwTouchListener())
 
-        // スタンプカード・報酬受取画面・受取完了画面の閉じるボタンの設定
+        // 閉じるボタンの設定
         binding.layoutStamp.buttonClose.setOnClickListener(OnButtonClick())
         binding.layoutReward.buttonClose.setOnClickListener(OnButtonClick())
         binding.layoutReceived.buttonClose.setOnClickListener(OnButtonClick())
+        binding.layoutKeyword.buttonClose.setOnClickListener(OnButtonClick())
+        binding.layoutRewardUrl.buttonClose.setOnClickListener(OnButtonClick())
 
         // ボトムメニュー ボタンイベント
         binding.bottomNavigation.setOnItemSelectedListener { menuItem ->
@@ -936,9 +939,8 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
 
     private fun isGetable(latitude: Double, longitude: Double) : Boolean {
         var results = FloatArray(3)
-        val cnId = commonDataViewModel.selectCnId
-        val srId = commonDataViewModel.selectSrId
-        val cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
+        val selected = getSelectId()
+        var cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
 
         // 位置情報からのスタンプ取得が制限されている場合
         if (cd != null) {
@@ -983,6 +985,16 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         }
     }
 
+    private fun getRewardUrl() : String? {
+        val selected = getSelectId()
+        var cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
+        if (cd != null) {
+            println("--------------------- ${cd.rewardUrl}----------------------")
+            return cd.rewardUrl
+        }
+        return null
+    }
+
     private fun openUrl(url : String){
         val uri : Uri = Uri.parse(url)
         val intent = Intent(Intent.ACTION_VIEW, uri)
@@ -1002,7 +1014,8 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     cb!!.complete!!.cp.add(point)
                 }
                 // 画面更新
-                updateSelected()
+                //updateSelected()
+                updateUser()
 
                 val message = resources.getText(R.string.stamp_camera_qr_get).toString()
                 showAlertDialog(message)
@@ -1038,20 +1051,28 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         val bgLayout = binding.bgLayout
         val btStampList = binding.btStampList
         val keywordLayout = binding.layoutKeyword.layout
+        val receiveUrlLayout = binding.layoutRewardUrl.layout
         override fun onClick(v: View) {
             when(v.id){
                 // スタンプカード表示切り替え
                 R.id.btStampList -> {
                     if(stampLayout.visibility == View.VISIBLE){
-                        stampLayout.visibility = View.GONE
-                        bgLayout.visibility = View.GONE
+                        allClose()
                     }
                     else {
                         val received = isRewardReceived()
+                        allClose()
                         if(received){
-                            binding.layoutStamp.buttonReward.text = resources.getText(R.string.stamp_got_reward)
-                            binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_gray)
-                            binding.layoutStamp.buttonReward.isEnabled = false
+                            if(!getRewardUrl().isNullOrBlank()){
+                                binding.layoutStamp.buttonReward.text = resources.getText(R.string.show_reward_url)
+                                binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_ripple)
+                                binding.layoutStamp.buttonReward.isEnabled = true
+                            } else {
+                                binding.layoutStamp.buttonReward.text =
+                                    resources.getText(R.string.stamp_got_reward)
+                                binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_gray)
+                                binding.layoutStamp.buttonReward.isEnabled = false
+                            }
                         }
                         else {
                             binding.layoutReward.swReceiveReward.isChecked = false
@@ -1075,9 +1096,15 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     // 獲得済み判定
                     val received = isRewardReceived()
                     if(received){
-                        binding.layoutStamp.buttonReward.text = resources.getText(R.string.stamp_got_reward)
-                        binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_gray)
-                        binding.layoutStamp.buttonReward.isEnabled = false
+                        if(!getRewardUrl().isNullOrBlank()){
+                            binding.layoutStamp.buttonReward.text = resources.getText(R.string.show_reward_url)
+                            binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_ripple)
+                            binding.layoutStamp.buttonReward.isEnabled = true
+                        } else {
+                            binding.layoutStamp.buttonReward.text = resources.getText(R.string.stamp_got_reward)
+                            binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_gray)
+                            binding.layoutStamp.buttonReward.isEnabled = false
+                        }
                     }
                     else {
                         binding.layoutStamp.buttonReward.text = resources.getText(R.string.stamp_get_reward)
@@ -1088,14 +1115,17 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
 
                 // 報酬獲得画面を表示
                 R.id.button_reward -> {
-                    btStampList.isClickable = false
                     stampLayout.visibility = View.GONE
 
                     val received = isRewardReceived()
+                    val url = getRewardUrl()
                     if(received){
-                    //if(!binding.layoutReward.swReceiveReward.isChecked){
-                        // 報酬受取済の場合は受取完了画面を表示
-                        receivedLayout.visibility = View.VISIBLE
+                        if(!url.isNullOrBlank()){
+                            receiveUrlLayout.visibility = View.VISIBLE
+                            binding.layoutRewardUrl.tvUrl.text = url
+                        } else {
+                            receivedLayout.visibility = View.VISIBLE
+                        }
                     }
                     else {
                         // 報酬未受取の場合は受取画面を表示
@@ -1105,19 +1135,25 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
 
                 // キーワード入力フォームを表示
                 R.id.openKeywordForm -> {
+                    allClose()
+                    bgLayout.visibility = View.VISIBLE
                     keywordLayout.visibility = View.VISIBLE
                 }
 
                 //閉じるボタン
                 R.id.button_close -> {
-                    rewardLayout.visibility = View.GONE
-                    receivedLayout.visibility = View.GONE
-                    stampLayout.visibility = View.GONE
-                    bgLayout.visibility = View.GONE
-                    keywordLayout.visibility = View.GONE
-                    btStampList.isClickable = true
+                    allClose()
                 }
             }
+        }
+
+        private fun allClose(){
+            rewardLayout.visibility = View.GONE
+            receivedLayout.visibility = View.GONE
+            stampLayout.visibility = View.GONE
+            bgLayout.visibility = View.GONE
+            keywordLayout.visibility = View.GONE
+            receiveUrlLayout.visibility = View.GONE
         }
     }
 }
