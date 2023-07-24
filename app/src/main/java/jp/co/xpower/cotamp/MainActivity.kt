@@ -551,7 +551,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
             updateMap()
 
             // キーワード入力ボタンの表示切替
-            if(cd.isKeywordAvailable){
+            if(cd.isKeywordAvailable && cd.state == RALLY_STATE_PUBLIC){
                 binding.openKeywordForm.visibility = View.VISIBLE
             } else {
                 binding.openKeywordForm.visibility = View.GONE
@@ -942,9 +942,15 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         val selected = getSelectId()
         var cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
 
-        // 位置情報からのスタンプ取得が制限されている場合
+
         if (cd != null) {
+            // 位置情報からのスタンプ取得が制限されている場合
             if(!cd.isLocationAvailable){
+                return false
+            }
+
+            // ラリー開催期間外の場合
+            if(cd.state != RALLY_STATE_PUBLIC){
                 return false
             }
         }
@@ -1010,6 +1016,15 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                 // 達成したらcommonDataListに選択CommonDataのチェックポイントを追加する
                 val cb: CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
                 val point: CheckPoint = CheckPoint.builder().cpId(cpId).build()
+
+                if (cb != null) {
+                    if(cb.state != RALLY_STATE_PUBLIC){
+                        val message = resources.getText(R.string.message_outside_period).toString()
+                        showAlertDialog(message)
+                        return@post
+                    }
+                }
+
                 if (cb != null && cb!!.complete != null) {
                     cb!!.complete!!.cp.add(point)
                 }
