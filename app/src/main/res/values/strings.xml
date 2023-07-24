@@ -19,6 +19,7 @@
     <string name="stamp_camera_qr_invalid">\n\n無効なQRコードです\n\n</string>
     <string name="stamp_camera_qr_wrong">\n\n選択中・参加中ではないQRコードです\n\n</string>
     <string name="stamp_camera_qr_error">COTAMPに対応していないQRが読み込まれました</string>
+    <string name="stamp_camera_qr_rally_private">\n\n開催期間外です\n\n</string>
 
     <string name="sys_button_close">閉じる</string>
 

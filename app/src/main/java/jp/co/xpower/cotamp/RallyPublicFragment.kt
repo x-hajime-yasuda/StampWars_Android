@@ -188,7 +188,7 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
         for(c : CommonData in l) {
             println("start:${c.displayStartAt}, end:${c.displayEndAt}, current:${System.currentTimeMillis()}, status:{${c.state}}")
         }
-        l = l.filter { it.state != MainActivity.RALLY_STATE_HIDE } as ArrayList<CommonData>
+        l = l.filter { it.state != MainActivity.RALLY_STATE_PRIVATE } as ArrayList<CommonData>
 
         // 部分一致検索
         if(!searchWord.isNullOrBlank()){

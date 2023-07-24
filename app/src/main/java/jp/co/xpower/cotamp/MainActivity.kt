@@ -17,8 +17,11 @@ import android.text.Spanned
 import android.text.style.AbsoluteSizeSpan
 import android.util.Log
 import android.view.GestureDetector
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.result.ActivityResultLauncher
@@ -56,7 +59,7 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.json.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
-
+import jp.co.xpower.cotamp.databinding.FragmentCustomSplashScreenBinding
 
 class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
     private lateinit var binding: ActivityMainBinding
@@ -64,6 +67,9 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
     private lateinit var googleMap: GoogleMap
     private lateinit var mapFragment: SupportMapFragment
     private lateinit var cameraLauncher: ActivityResultLauncher<Intent>
+
+    private lateinit var splashBinding: FragmentCustomSplashScreenBinding
+
 
     private var identityId:String? = null
     private var identityNewId:String = ""
@@ -92,7 +98,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         const val RALLY_STATE_PUBLIC = 1    // 開催中
         const val RALLY_STATE_JOIN = 2      // 参加中
         const val RALLY_STATE_END = 3       // 終了済み
-        const val RALLY_STATE_HIDE = 4      // 表示しない
+        const val RALLY_STATE_PRIVATE = 4    // 開催期間外
 
         // 初期MAP座標(東大)
         const val MAP_DEFAULT_LATITUDE = 35.712914101248444
@@ -207,8 +213,9 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                 else {
                     common.state = RALLY_STATE_END    // 終了済み
                 }
+
                 if( !(serverTime in displayStartAt..displayEndAt) ){
-                    common.state = RALLY_STATE_HIDE // 表示しない
+                    common.state = RALLY_STATE_PRIVATE // 表示しない
                 }
 
                 // チェックポイント数とユーザーデータのチェックポイント数の一致でラリー達成
@@ -271,10 +278,16 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         }
 
         // サーバータイム取得
-        val futureFunction = functionViewModel.callFunction(FunctionViewModel.FUNCTION_TIME, "")
+        val futureFunction = functionViewModel.callFunctionRetry(FunctionViewModel.FUNCTION_TIME, "")
 
         val future = dataStoreViewModel.initDataStore()
-        CompletableFuture.allOf(future, futureFunction).thenRun {
+        CompletableFuture.allOf(future, futureFunction)
+            .handle { _, exception ->
+                if (exception != null) {
+                    Log.i("STW", "ex.")
+                }
+            }
+            .thenRun {
             Log.i("STW", "DataStore.initDataStore.")
 
             val futureCompany = dataStoreViewModel.getCompany()
@@ -289,6 +302,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
             val serverTime = getQRDecodeElement!!.jsonObject["data"]!!.jsonPrimitive.long
             commonDataViewModel.serverTime = serverTime
 
+            // 2度目以降の起動
             if(isAgree) {
                 CompletableFuture.allOf(futureCompany, futureUser).thenRun {
                     // 会社・ラリー情報
@@ -309,13 +323,42 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     initLiveData.postValue(true)
                 }
             }
+            // 初回起動
             else {
                 CompletableFuture.allOf(futureCompany).thenRun {
                     // 会社・ラリー情報
                     val company = futureCompany.get()
                     companyList = company as ArrayList<StwCompany>
                     // ローディング完了
-                    initLiveData.postValue(true)
+                    /////initLiveData.postValue(true)
+
+                    // 規約一時非表示対応
+
+                    // 認証開始 ここから →
+                    val futureAuth = dataStoreViewModel.fetchAuth()
+                    CompletableFuture.allOf(futureAuth).thenRun {
+                        identityId = futureAuth.get()
+                        val futureCreate = dataStoreViewModel.createUser(identityId!!, "名前未設定")
+                        CompletableFuture.allOf(futureCreate).thenRun {
+                            val user = futureCreate.get()
+                            // View更新
+                            updateDataViewModel(user)
+
+                            val mainHandler = Handler(Looper.getMainLooper())
+                            mainHandler.post {
+                                pref.edit().putString(PREF_KEY_USER_ID, identityId).apply()
+                                pref.edit().putBoolean(PREF_KEY_AGREE, true).apply()
+                                //termsBinding.root.visibility = View.GONE
+
+                                // メインビュー処理
+                                mainInitialize()
+
+                                // ローディング完了
+                                initLiveData.postValue(true)
+                            }
+                        }
+                    }
+                    // 認証開始 ← ここまで
                 }
             }
         }
@@ -338,6 +381,18 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
             splashScreenView.remove()
         }
 
+        // スプラッシュの裏でローディング画面を用意する
+        splashBinding = FragmentCustomSplashScreenBinding.inflate(layoutInflater)
+        setContentView(splashBinding.root)
+
+        // 3秒後にスプラッシュを強制非表示にする。データ取得が完了すると自動的にローディングが上書きされてメイン表示される
+        var runnable = Runnable {
+            initLiveData.postValue(true)
+        }
+        var handler = Handler(Looper.getMainLooper())
+        handler?.postDelayed(runnable!!, 3000)
+
+
         super.onCreate(savedInstanceState)
 
         // Camera結果の取得
@@ -347,8 +402,12 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
             if (result.resultCode == RESULT_OK) {
                 val text = result.data?.getStringExtra(MainActivity.EXTRA_MESSAGE) ?: ""
 
-                val futureFunction = functionViewModel.callFunction(FunctionViewModel.FUNCTION_QR, text)
+                val loadingDialog = showLoadingDialog()
+                loadingDialog.show()
+                //val futureFunction = functionViewModel.callFunction(FunctionViewModel.FUNCTION_QR, text)
+                val futureFunction = functionViewModel.callFunctionRetry(FunctionViewModel.FUNCTION_QR, text)
                 CompletableFuture.allOf(futureFunction).thenRun {
+                    loadingDialog.dismiss()
                     val data: String = futureFunction.get()
                     val jsonElement = Json.parseToJsonElement(data)
                     val getQRDecodeJsonString: String? = jsonElement.jsonObject["getQRDecode"]?.jsonPrimitive?.content
@@ -364,9 +423,18 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                         val qrSrId = dec.split("_")[1]
                         val qrCpId = dec.split("_")[2]
 
-                        if("${cnId}_${srId}" == "${qrCnId}_${qrSrId}"){
-                            var cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
+                        var cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
 
+                        /*
+                        if(cd != null && cd!!.startAt != null && cd!!.endAt != null){
+                            if(commonDataViewModel.serverTime in cd!!.startAt!!..cd!!.endAt!!){
+                                message = resources.getText(R.string.stamp_camera_qr_rally_private).toString()
+                                showAlertDialog(message)
+                            }
+                        }
+                        */
+
+                        if("${cnId}_${srId}" == "${qrCnId}_${qrSrId}"){
                             var checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == qrCpId}
                             // 達成済み
                             if(checkPoint != null){
@@ -398,6 +466,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         startInitProcess(isAgree)
 
 
+        /*
         // 初回起動規約同意前
         if(!isAgree){
             // 規約同意レイアウト表示
@@ -429,6 +498,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
             }
         }
 
+         */
         // 通知チャンネルの作成
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager = getSystemService(
@@ -794,9 +864,15 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         // 報酬受け取り完了画面の表示
         binding.layoutReward.swReceiveReward.setOnCheckedChangeListener { buttonView, isChecked ->
             if(isChecked){
+                // ロードダイアログ
+                val loadingDialog = showLoadingDialog()
+                loadingDialog.show()
+
                 val selected = getSelectId()
                 val completableFuture = dataStoreViewModel.updateRewardAsyncTask(identityId!!, selected.first, selected.second, true)
                 CompletableFuture.allOf(completableFuture).thenRun {
+
+                    loadingDialog.dismiss()
 
                     // ViewModel更新
                     var cb:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
@@ -1036,6 +1112,47 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                 showAlertDialog(message)
             }
         }
+    }
+
+    fun showLoadingDialog() :AlertDialog{
+        //val builder = AlertDialog.Builder(this, R.style.TransparentDialog)
+        val builder = AlertDialog.Builder(this)
+
+        val dialogBinding = FragmentCustomSplashScreenBinding.inflate(layoutInflater)
+
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 50, 50, 50)
+        }
+
+        val progressBar = ProgressBar(this).apply {
+            isIndeterminate = true
+            setPadding(50, 50, 50, 50)
+            //indeterminateTintList = ColorStateList.valueOf(Color.WHITE)
+        }
+        val textView = TextView(this).apply {
+            text = "Loading..."
+            //setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+            setPadding(0, 20, 0, 0)
+        }
+        val button = Button(this, null, R.style.Stw_button).apply {
+            text = "リトライ"
+            setPadding(50, 50, 50, 50)
+            setOnClickListener {
+                // ボタンがクリックされた時の処理を記述
+            }
+        }
+
+        layout.addView(progressBar)
+        layout.addView(textView)
+        layout.addView(button)
+
+        //builder.setView(layout)
+        builder.setView(dialogBinding.root)
+        builder.setCancelable(false) // 画面外タッチでキャンセルできないようにする
+
+        return builder.create()
     }
 
     private inner class SwTouchListener : View.OnTouchListener {

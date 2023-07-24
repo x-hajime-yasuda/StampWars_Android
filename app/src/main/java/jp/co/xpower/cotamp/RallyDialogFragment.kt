@@ -26,12 +26,15 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import jp.co.xpower.cotamp.AlarmReceiver.Companion.getNotificationId
+import androidx.lifecycle.lifecycleScope
 import jp.co.xpower.cotamp.databinding.FragmentRallyDialogBinding
 import jp.co.xpower.cotamp.model.CommonDataViewModel
 import jp.co.xpower.cotamp.model.DataStoreViewModel
 import jp.co.xpower.cotamp.model.StorageViewModel
 import jp.co.xpower.cotamp.util.StwUtils
 import jp.co.xpower.cotamp.R
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Calendar
 import java.util.Date
@@ -141,6 +144,20 @@ class RallyDialogFragment : DialogFragment() {
             binding.buttonJoin.text = resources.getString(R.string.button_join)
         }
 
+
+        // 開催期間チェック
+        if(data!!.startAt != null && data!!.endAt != null){
+            if(commonDataViewModel.serverTime in data.startAt!!..data.endAt!!){
+            }
+            else {
+                binding.buttonJoin.setBackgroundResource(R.drawable.button_gray)
+                binding.buttonJoin.isEnabled = false
+            }
+        }
+
+
+
+
         // 開催場所
         if(data.place != null){
             val textPlace:String = binding.textPlace.text.toString()
@@ -152,29 +169,39 @@ class RallyDialogFragment : DialogFragment() {
 
         // 選択・参加ボタン押下
         binding.buttonJoin.setOnClickListener {
-            // 参加中のラリーの選択
-            if(data!!.joinFlg){
-                dismissListener?.onSelect(data.cnId, data.srId)
-                dismiss()
-            }
-            // 未参加のラリーには参加する
-            else {
-                commonDataViewModel.select(cnId!!, srId!!)
-                val completableFuture = dataStoreViewModel.rallyJoining(commonDataViewModel)
-                CompletableFuture.allOf(completableFuture).thenRun {
-                    dismissListener?.onSelect(cnId!!, srId!!)
+
+            // ロードダイアログ
+            val loadingDialog = (activity as MainActivity).showLoadingDialog()
+            lifecycleScope.launch {
+                loadingDialog.show()
+                delay(1000)
+
+                // 参加中のラリーの選択
+                if(data!!.joinFlg){
+                    dismissListener?.onSelect(data.cnId, data.srId)
+                    loadingDialog.dismiss()
                     dismiss()
                 }
+                // 未参加のラリーには参加する
+                else {
+                    commonDataViewModel.select(cnId!!, srId!!)
+                    val completableFuture = dataStoreViewModel.rallyJoining(commonDataViewModel)
+                    CompletableFuture.allOf(completableFuture).thenRun {
+                        loadingDialog.dismiss()
+                        dismissListener?.onSelect(cnId!!, srId!!)
+                        dismiss()
+                    }
 
-                // 通知を送る
-                val calendar : Calendar = Calendar.getInstance()
-                val date = Date(data!!.startAt!! * 1000)
-                val content = getString(R.string.notification_content_rally_start, data!!.title)
-                val title = getString(R.string.notification_title_rally_start)
-                calendar.clear()
-                calendar.time = date
-                if(System.currentTimeMillis() < date.time){
-                    rallyStartNotification(title, content, calendar)
+                    // 通知を送る
+                    val calendar : Calendar = Calendar.getInstance()
+                    val date = Date(data!!.startAt!! * 1000)
+                    val content = getString(R.string.notification_content_rally_start, data!!.title)
+                    val title = getString(R.string.notification_title_rally_start)
+                    calendar.clear()
+                    calendar.time = date
+                    if(System.currentTimeMillis() < date.time) {
+                        rallyStartNotification(title, content, calendar)
+                    }
                 }
             }
 
