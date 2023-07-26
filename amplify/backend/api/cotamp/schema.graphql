@@ -22,6 +22,7 @@ type CheckPoint {
 	cpName: String
 	latitude: String
 	longitude: String
+	keyword: String
 }
 
 type Rally {

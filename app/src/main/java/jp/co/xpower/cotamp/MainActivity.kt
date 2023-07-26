@@ -98,7 +98,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         const val RALLY_STATE_PUBLIC = 1    // 開催中
         const val RALLY_STATE_JOIN = 2      // 参加中
         const val RALLY_STATE_END = 3       // 終了済み
-        const val RALLY_STATE_PRIVATE = 4    // 開催期間外
+//        const val RALLY_STATE_PRIVATE = 4    // 開催期間外
 
         // 初期MAP座標(東大)
         const val MAP_DEFAULT_LATITUDE = 35.712914101248444
@@ -212,10 +212,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                 }
                 else {
                     common.state = RALLY_STATE_END    // 終了済み
-                }
-
-                if( !(serverTime in displayStartAt..displayEndAt) ){
-                    common.state = RALLY_STATE_PRIVATE // 表示しない
                 }
 
                 // チェックポイント数とユーザーデータのチェックポイント数の一致でラリー達成
@@ -433,6 +429,13 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                             }
                         }
                         */
+
+                        // qrCpIdが空欄の場合には
+                        if(qrCpId.isNullOrBlank()){
+                            BottomSheetFragment.newInstance(companyList, qrCnId, qrSrId).show(supportFragmentManager, "dialog")
+                            showAlertDialog("QRコードに対応するラリーの詳細を表示します")
+                            return@thenRun
+                        }
 
                         if("${cnId}_${srId}" == "${qrCnId}_${qrSrId}"){
                             var checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == qrCpId}
@@ -839,9 +842,9 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                 return@setOnClickListener
             }
 
-            val matchedPoint = cd?.cp?.find { it.cpName == inputKeyword }
+            val matchedPoint = cd?.cp?.find { it.keyword == inputKeyword }
             val checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == matchedPoint?.cpId}
-            if(matchedPoint == null){
+            if(matchedPoint == null || inputKeyword.isNullOrBlank()){
                 showAlertDialog("無効なキーワードです")
             } else if(checkPoint != null){
                 showAlertDialog(getString(R.string.stamp_camera_qr_already_point))
@@ -1071,7 +1074,6 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
         val selected = getSelectId()
         var cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
         if (cd != null) {
-            println("--------------------- ${cd.rewardUrl}----------------------")
             return cd.rewardUrl
         }
         return null
@@ -1094,7 +1096,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                 val point: CheckPoint = CheckPoint.builder().cpId(cpId).build()
 
                 if (cb != null) {
-                    if(cb.state != RALLY_STATE_PUBLIC){
+                    if(cb.state == RALLY_STATE_END){
                         val message = resources.getText(R.string.message_outside_period).toString()
                         showAlertDialog(message)
                         return@post
@@ -1105,7 +1107,7 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                     cb!!.complete!!.cp.add(point)
                 }
                 // 画面更新
-                //updateSelected()
+//                updateSelected()
                 updateUser()
 
                 val message = resources.getText(R.string.stamp_camera_qr_get).toString()

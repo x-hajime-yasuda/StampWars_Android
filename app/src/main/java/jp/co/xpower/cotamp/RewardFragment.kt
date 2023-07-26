@@ -69,7 +69,8 @@ class RewardFragment : Fragment(), RewardClickListener {
                 "",
                 R.drawable.no_image,
                 joined = false,
-                selected = false
+                selected = false,
+                isVisible = false
             )
             rallyList.add(rally)
         }

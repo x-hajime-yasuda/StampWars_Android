@@ -12,6 +12,7 @@ public final class CheckPoint {
   private final String cpName;
   private final String latitude;
   private final String longitude;
+  private final String keyword;
   public String getCpId() {
       return cpId;
   }
@@ -28,11 +29,16 @@ public final class CheckPoint {
       return longitude;
   }
   
-  private CheckPoint(String cpId, String cpName, String latitude, String longitude) {
+  public String getKeyword() {
+      return keyword;
+  }
+  
+  private CheckPoint(String cpId, String cpName, String latitude, String longitude, String keyword) {
     this.cpId = cpId;
     this.cpName = cpName;
     this.latitude = latitude;
     this.longitude = longitude;
+    this.keyword = keyword;
   }
   
   @Override
@@ -46,7 +52,8 @@ public final class CheckPoint {
       return ObjectsCompat.equals(getCpId(), checkPoint.getCpId()) &&
               ObjectsCompat.equals(getCpName(), checkPoint.getCpName()) &&
               ObjectsCompat.equals(getLatitude(), checkPoint.getLatitude()) &&
-              ObjectsCompat.equals(getLongitude(), checkPoint.getLongitude());
+              ObjectsCompat.equals(getLongitude(), checkPoint.getLongitude()) &&
+              ObjectsCompat.equals(getKeyword(), checkPoint.getKeyword());
       }
   }
   
@@ -57,6 +64,7 @@ public final class CheckPoint {
       .append(getCpName())
       .append(getLatitude())
       .append(getLongitude())
+      .append(getKeyword())
       .toString()
       .hashCode();
   }
@@ -69,7 +77,8 @@ public final class CheckPoint {
     return new CopyOfBuilder(cpId,
       cpName,
       latitude,
-      longitude);
+      longitude,
+      keyword);
   }
   public interface BuildStep {
     CheckPoint build();
@@ -77,6 +86,7 @@ public final class CheckPoint {
     BuildStep cpName(String cpName);
     BuildStep latitude(String latitude);
     BuildStep longitude(String longitude);
+    BuildStep keyword(String keyword);
   }
   
 
@@ -85,6 +95,7 @@ public final class CheckPoint {
     private String cpName;
     private String latitude;
     private String longitude;
+    private String keyword;
     @Override
      public CheckPoint build() {
         
@@ -92,7 +103,8 @@ public final class CheckPoint {
           cpId,
           cpName,
           latitude,
-          longitude);
+          longitude,
+          keyword);
     }
     
     @Override
@@ -118,15 +130,22 @@ public final class CheckPoint {
         this.longitude = longitude;
         return this;
     }
+    
+    @Override
+     public BuildStep keyword(String keyword) {
+        this.keyword = keyword;
+        return this;
+    }
   }
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String cpId, String cpName, String latitude, String longitude) {
+    private CopyOfBuilder(String cpId, String cpName, String latitude, String longitude, String keyword) {
       super.cpId(cpId)
         .cpName(cpName)
         .latitude(latitude)
-        .longitude(longitude);
+        .longitude(longitude)
+        .keyword(keyword);
     }
     
     @Override
@@ -147,6 +166,11 @@ public final class CheckPoint {
     @Override
      public CopyOfBuilder longitude(String longitude) {
       return (CopyOfBuilder) super.longitude(longitude);
+    }
+    
+    @Override
+     public CopyOfBuilder keyword(String keyword) {
+      return (CopyOfBuilder) super.keyword(keyword);
     }
   }
   

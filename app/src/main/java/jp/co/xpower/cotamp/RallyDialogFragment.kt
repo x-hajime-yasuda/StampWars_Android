@@ -226,7 +226,6 @@ class RallyDialogFragment : DialogFragment() {
     private fun rallyStartNotification(title : String, content : String, calendar: Calendar) {
         val notificationIntent = Intent(this.requireContext(), AlarmReceiver::class.java)
         val notificationId = getNotificationId()
-        println("-------------- $notificationId ------------------")
         notificationIntent.putExtra("title", title)
         notificationIntent.putExtra("content", content)
         notificationIntent.putExtra("notificationId", notificationId)

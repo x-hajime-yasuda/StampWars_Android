@@ -184,12 +184,6 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
             l = commonDataViewModel.commonDataList.filter { it.joinFlg } as ArrayList<CommonData>
         }
 
-        // 表示期間内のもののみ表示
-        for(c : CommonData in l) {
-            println("start:${c.displayStartAt}, end:${c.displayEndAt}, current:${System.currentTimeMillis()}, status:{${c.state}}")
-        }
-        l = l.filter { it.state != MainActivity.RALLY_STATE_PRIVATE } as ArrayList<CommonData>
-
         // 部分一致検索
         if(!searchWord.isNullOrBlank()){
             l = l.filter {
@@ -204,6 +198,7 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
             if(selectCnId == list.cnId && selectSrId == list.srId){
                 selected = true
             }
+            var isVisible = commonDataViewModel.serverTime in list.displayStartAt!! .. list.displayEndAt!!
 
             var rally = Rally(
                 list.cnId,
@@ -215,13 +210,15 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
                 list.rewardDetail,
                 R.drawable.no_image,
                 joined = list.joinFlg,
-                selected = selected
+                selected = selected,
+                isVisible
             )
             rallyList.add(rally)
         }
+        var rallyListVisible = rallyList.filter { it.isVisible || it.selected }
 
         binding.recyclerView.layoutManager = GridLayoutManager(context, 2)
-        binding.recyclerView.adapter = ItemAdapter(rallyList, this)
+        binding.recyclerView.adapter = ItemAdapter(rallyListVisible, this)
         binding.recyclerView.adapter?.notifyDataSetChanged()
 
         listener = parentFragment as? RecyclerViewListener ?: throw IllegalStateException("Parent must implement MyRecyclerViewListener")
