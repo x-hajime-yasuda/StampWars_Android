@@ -193,15 +193,15 @@ class RallyDialogFragment : DialogFragment() {
                     }
 
                     // 通知を送る
-                    val calendar : Calendar = Calendar.getInstance()
-                    val date = Date(data!!.startAt!! * 1000)
-                    val content = getString(R.string.notification_content_rally_start, data!!.title)
-                    val title = getString(R.string.notification_title_rally_start)
-                    calendar.clear()
-                    calendar.time = date
-                    if(System.currentTimeMillis() < date.time) {
-                        rallyStartNotification(title, content, calendar)
-                    }
+//                    val calendar : Calendar = Calendar.getInstance()
+//                    val date = Date(data!!.startAt!! * 1000)
+//                    val content = getString(R.string.notification_content_rally_start, data!!.title)
+//                    val title = getString(R.string.notification_title_rally_start)
+//                    calendar.clear()
+//                    calendar.time = date
+//                    if(System.currentTimeMillis() < date.time) {
+//                        rallyStartNotification(title, content, calendar)
+//                    }
                 }
             }
 

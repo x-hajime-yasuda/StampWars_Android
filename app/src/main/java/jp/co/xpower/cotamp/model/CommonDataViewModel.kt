@@ -65,5 +65,6 @@ data class CommonData(
     var completeFlg: Boolean = false,
     var got: Boolean = false,
     var isLocationAvailable: Boolean = false,
-    var isKeywordAvailable: Boolean = false
+    var isKeywordAvailable: Boolean = false,
+    var maxRadius: Int = 10
 )

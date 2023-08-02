@@ -43,6 +43,7 @@ type Rally {
 	cp: [CheckPoint]
 	isLocationAvailable: Boolean
 	isKeywordAvailable: Boolean
+	maxRadius: Int
 }
 
 type StwUser @model @auth(rules: [

@@ -51,12 +51,12 @@
       },
       "providerPlugin": "awscloudformation",
       "service": "AppSync",
-      "lastPushTimeStamp": "2023-07-24T05:26:11.536Z",
+      "lastPushTimeStamp": "2023-07-26T08:21:22.476Z",
       "providerMetadata": {
         "s3TemplateURL": "https://s3.amazonaws.com/amplify-cotamp-dev-20305-deployment/amplify-cfn-templates/api/cloudformation-template.json",
         "logicalId": "apicotamp"
       },
-      "lastPushDirHash": "7HkSdoxQdF37G9r4ydDh6UA8IWo="
+      "lastPushDirHash": "d+qBfzsIm9eXI3tFKmHyy+O4r7s="
     }
   },
   "auth": {
@@ -94,7 +94,7 @@
         "IdentityPoolName": "cotampb08be104_identitypool_b08be104__dev",
         "UserPoolName": "cotampb08be104_userpool_b08be104"
       },
-      "lastPushTimeStamp": "2023-07-24T05:26:11.539Z",
+      "lastPushTimeStamp": "2023-07-26T08:21:22.485Z",
       "providerMetadata": {
         "s3TemplateURL": "https://s3.amazonaws.com/amplify-cotamp-dev-20305-deployment/amplify-cfn-templates/auth/cotampb08be104-cloudformation-template.json",
         "logicalId": "authcotampb08be104"
@@ -110,7 +110,7 @@
         "BucketName": "cotampb1f2112061b54669841d78c27a27a57120305-dev",
         "Region": "ap-northeast-1"
       },
-      "lastPushTimeStamp": "2023-07-24T05:26:13.409Z",
+      "lastPushTimeStamp": "2023-07-26T08:21:24.707Z",
       "providerMetadata": {
         "s3TemplateURL": "https://s3.amazonaws.com/amplify-cotamp-dev-20305-deployment/amplify-cfn-templates/storage/cloudformation-template.json",
         "logicalId": "storages3db24b344"

@@ -26,6 +26,7 @@ public final class Rally {
   private final List<CheckPoint> cp;
   private final Boolean isLocationAvailable;
   private final Boolean isKeywordAvailable;
+  private final Integer maxRadius;
   public String getSrId() {
       return srId;
   }
@@ -94,7 +95,11 @@ public final class Rally {
       return isKeywordAvailable;
   }
   
-  private Rally(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, Temporal.Timestamp displayStartAt, Temporal.Timestamp displayEndAt, String place, Integer total, String detail, Integer status, Integer completeCount, String rewardTitle, String rewardDetail, String rewardUrl, List<CheckPoint> cp, Boolean isLocationAvailable, Boolean isKeywordAvailable) {
+  public Integer getMaxRadius() {
+      return maxRadius;
+  }
+  
+  private Rally(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, Temporal.Timestamp displayStartAt, Temporal.Timestamp displayEndAt, String place, Integer total, String detail, Integer status, Integer completeCount, String rewardTitle, String rewardDetail, String rewardUrl, List<CheckPoint> cp, Boolean isLocationAvailable, Boolean isKeywordAvailable, Integer maxRadius) {
     this.srId = srId;
     this.title = title;
     this.startAt = startAt;
@@ -112,6 +117,7 @@ public final class Rally {
     this.cp = cp;
     this.isLocationAvailable = isLocationAvailable;
     this.isKeywordAvailable = isKeywordAvailable;
+    this.maxRadius = maxRadius;
   }
   
   @Override
@@ -138,7 +144,8 @@ public final class Rally {
               ObjectsCompat.equals(getRewardUrl(), rally.getRewardUrl()) &&
               ObjectsCompat.equals(getCp(), rally.getCp()) &&
               ObjectsCompat.equals(getIsLocationAvailable(), rally.getIsLocationAvailable()) &&
-              ObjectsCompat.equals(getIsKeywordAvailable(), rally.getIsKeywordAvailable());
+              ObjectsCompat.equals(getIsKeywordAvailable(), rally.getIsKeywordAvailable()) &&
+              ObjectsCompat.equals(getMaxRadius(), rally.getMaxRadius());
       }
   }
   
@@ -162,6 +169,7 @@ public final class Rally {
       .append(getCp())
       .append(getIsLocationAvailable())
       .append(getIsKeywordAvailable())
+      .append(getMaxRadius())
       .toString()
       .hashCode();
   }
@@ -187,7 +195,8 @@ public final class Rally {
       rewardUrl,
       cp,
       isLocationAvailable,
-      isKeywordAvailable);
+      isKeywordAvailable,
+      maxRadius);
   }
   public interface BuildStep {
     Rally build();
@@ -208,6 +217,7 @@ public final class Rally {
     BuildStep cp(List<CheckPoint> cp);
     BuildStep isLocationAvailable(Boolean isLocationAvailable);
     BuildStep isKeywordAvailable(Boolean isKeywordAvailable);
+    BuildStep maxRadius(Integer maxRadius);
   }
   
 
@@ -229,6 +239,7 @@ public final class Rally {
     private List<CheckPoint> cp;
     private Boolean isLocationAvailable;
     private Boolean isKeywordAvailable;
+    private Integer maxRadius;
     @Override
      public Rally build() {
         
@@ -249,7 +260,8 @@ public final class Rally {
           rewardUrl,
           cp,
           isLocationAvailable,
-          isKeywordAvailable);
+          isKeywordAvailable,
+          maxRadius);
     }
     
     @Override
@@ -353,11 +365,17 @@ public final class Rally {
         this.isKeywordAvailable = isKeywordAvailable;
         return this;
     }
+    
+    @Override
+     public BuildStep maxRadius(Integer maxRadius) {
+        this.maxRadius = maxRadius;
+        return this;
+    }
   }
   
 
   public final class CopyOfBuilder extends Builder {
-    private CopyOfBuilder(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, Temporal.Timestamp displayStartAt, Temporal.Timestamp displayEndAt, String place, Integer total, String detail, Integer status, Integer completeCount, String rewardTitle, String rewardDetail, String rewardUrl, List<CheckPoint> cp, Boolean isLocationAvailable, Boolean isKeywordAvailable) {
+    private CopyOfBuilder(String srId, String title, Temporal.Timestamp startAt, Temporal.Timestamp endAt, Temporal.Timestamp displayStartAt, Temporal.Timestamp displayEndAt, String place, Integer total, String detail, Integer status, Integer completeCount, String rewardTitle, String rewardDetail, String rewardUrl, List<CheckPoint> cp, Boolean isLocationAvailable, Boolean isKeywordAvailable, Integer maxRadius) {
       super.srId(srId)
         .title(title)
         .startAt(startAt)
@@ -374,7 +392,8 @@ public final class Rally {
         .rewardUrl(rewardUrl)
         .cp(cp)
         .isLocationAvailable(isLocationAvailable)
-        .isKeywordAvailable(isKeywordAvailable);
+        .isKeywordAvailable(isKeywordAvailable)
+        .maxRadius(maxRadius);
     }
     
     @Override
@@ -460,6 +479,11 @@ public final class Rally {
     @Override
      public CopyOfBuilder isKeywordAvailable(Boolean isKeywordAvailable) {
       return (CopyOfBuilder) super.isKeywordAvailable(isKeywordAvailable);
+    }
+    
+    @Override
+     public CopyOfBuilder maxRadius(Integer maxRadius) {
+      return (CopyOfBuilder) super.maxRadius(maxRadius);
     }
   }
   

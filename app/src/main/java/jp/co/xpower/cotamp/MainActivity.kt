@@ -199,6 +199,8 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                 common.displayEndAt = displayEndAt
                 common.isLocationAvailable = rally.isLocationAvailable
                 common.isKeywordAvailable = rally.isKeywordAvailable
+                common.maxRadius = rally.maxRadius
+                println("-------${rally.maxRadius}---------------------------------")
 
                 val serverTime = commonDataViewModel.serverTime
 
@@ -430,14 +432,25 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                         }
                         */
 
-                        // qrCpIdが空欄の場合には
+                        // qrCpIdが空欄の場合にはラリー詳細を表示
                         if(qrCpId.isNullOrBlank()){
-                            BottomSheetFragment.newInstance(companyList, qrCnId, qrSrId).show(supportFragmentManager, "dialog")
-                            showAlertDialog("QRコードに対応するラリーの詳細を表示します")
+                            if(commonDataViewModel.commonDataList.find { it.cnId == qrCnId && it.srId == qrSrId } != null){
+                                BottomSheetFragment.newInstance(companyList, qrCnId, qrSrId).show(supportFragmentManager, "dialog")
+                                showAlertDialog(getString(R.string.stamp_camera_qr_open_rally_details))
+                            }
+                            else {
+                                showAlertDialog(getString(R.string.stamp_camera_qr_error))
+                            }
                             return@thenRun
                         }
 
                         if("${cnId}_${srId}" == "${qrCnId}_${qrSrId}"){
+                            // 存在しないチェックポイント
+                            if(cd!!.cp.find { it.cpId == qrCpId } == null){
+                                showAlertDialog(getString(R.string.stamp_camera_qr_error))
+                                return@thenRun
+                            }
+
                             var checkPoint:CheckPoint? = cd!!.complete!!.cp.find{it.cpId == qrCpId}
                             // 達成済み
                             if(checkPoint != null){
@@ -503,17 +516,17 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
 
          */
         // 通知チャンネルの作成
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationManager = getSystemService(
-                NotificationManager::class.java
-            )
-            notificationManager.createNotificationChannel(
-                NotificationChannel(AlarmReceiver.ChannelId.RALLY_START, AlarmReceiver.ChannelName.RALLY_START, NotificationManager.IMPORTANCE_LOW)
-            )
-            notificationManager.createNotificationChannel(
-                NotificationChannel(AlarmReceiver.ChannelId.GET_STAMP_FROM_LOCATION, AlarmReceiver.ChannelName.GET_STAMP_FROM_LOCATION, NotificationManager.IMPORTANCE_LOW)
-            )
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val notificationManager = getSystemService(
+//                NotificationManager::class.java
+//            )
+//            notificationManager.createNotificationChannel(
+//                NotificationChannel(AlarmReceiver.ChannelId.RALLY_START, AlarmReceiver.ChannelName.RALLY_START, NotificationManager.IMPORTANCE_LOW)
+//            )
+//            notificationManager.createNotificationChannel(
+//                NotificationChannel(AlarmReceiver.ChannelId.GET_STAMP_FROM_LOCATION, AlarmReceiver.ChannelName.GET_STAMP_FROM_LOCATION, NotificationManager.IMPORTANCE_LOW)
+//            )
+//        }
     }
 
     override fun onResume() {
@@ -1019,186 +1032,234 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
     private fun isGetable(latitude: Double, longitude: Double) : Boolean {
         var results = FloatArray(3)
         val selected = getSelectId()
-        var cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
+        var cd: CommonData? =
+            commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
 
+        if (cd == null) {
+            return false
+        }
 
-        if (cd != null) {
-            // 位置情報からのスタンプ取得が制限されている場合
-            if(!cd.isLocationAvailable){
-                return false
-            }
+        // 位置情報からのスタンプ取得が制限されている場合
+        if (!cd.isLocationAvailable) {
+            return false
+        }
 
-            // ラリー開催期間外の場合
-            if(cd.state != RALLY_STATE_PUBLIC){
-                return false
-            }
+        // ラリー開催期間外の場合
+        if (cd.state == RALLY_STATE_END) {
+            return false
         }
 
         // currentLocationが初期化されていなければfalse
-        if(!this::currentLocation.isInitialized){
-            return false
+        if (!this::currentLocation.isInitialized) {
+            if (!this::currentLocation.isInitialized) {
+                return false
+            }
+
+            Location.distanceBetween(
+                latitude,
+                longitude,
+                currentLocation.latitude,
+                currentLocation.longitude,
+                results
+            )
+
+        }
+        return results.get(0) < cd.maxRadius
+    }
+
+        private fun isGetable(marker: Marker): Boolean {
+            return isGetable(marker.position.latitude, marker.position.longitude)
         }
 
-        Location.distanceBetween(latitude, longitude, currentLocation.latitude, currentLocation.longitude, results)
+        private fun startLocationUpdates() {
+            val locationRequest = createLocationRequest() ?: return
 
-        return results.get(0) < 5
-    }
-
-    private fun isGetable(marker: Marker): Boolean{
-        return isGetable(marker.position.latitude, marker.position.longitude)
-    }
-
-    private fun startLocationUpdates() {
-        val locationRequest = createLocationRequest() ?: return
-
-        checkPermission()
-        fusedLocationClient.requestLocationUpdates(
-            locationRequest,
-            locationCallback,
-            null)
-    }
-
-    private fun stopLocationUpdates() {
-        fusedLocationClient.removeLocationUpdates(locationCallback)
-    }
-
-    private fun createLocationRequest(): LocationRequest? {
-        return LocationRequest.create()?.apply {
-            interval = 10000
-            fastestInterval = 5000
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            checkPermission()
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                null
+            )
         }
-    }
 
-    private fun getRewardUrl() : String? {
-        val selected = getSelectId()
-        var cd:CommonData? = commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
-        if (cd != null) {
-            return cd.rewardUrl
+        private fun stopLocationUpdates() {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
         }
-        return null
-    }
 
-    private fun openUrl(url : String){
-        val uri : Uri = Uri.parse(url)
-        val intent = Intent(Intent.ACTION_VIEW, uri)
-        startActivity(intent)
-    }
+        private fun createLocationRequest(): LocationRequest? {
+            return LocationRequest.create()?.apply {
+                interval = 10000
+                fastestInterval = 5000
+                priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            }
+        }
 
-    private fun getStamp(cnId : String, srId : String, cpId : String){
-        val futureStamp = dataStoreViewModel.rallyStamping(commonDataViewModel, cpId)
-        CompletableFuture.allOf(futureStamp).thenRun {
-            val mainHandler = Handler(Looper.getMainLooper())
-            mainHandler.post {
-                // 選択中ラリーの表示更新
-                // 達成したらcommonDataListに選択CommonDataのチェックポイントを追加する
-                val cb: CommonData? = commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
-                val point: CheckPoint = CheckPoint.builder().cpId(cpId).build()
+        private fun getRewardUrl(): String? {
+            val selected = getSelectId()
+            var cd: CommonData? =
+                commonDataViewModel.commonDataList.find { it.cnId == selected.first && it.srId == selected.second }
+            if (cd != null) {
+                return cd.rewardUrl
+            }
+            return null
+        }
 
-                if (cb != null) {
-                    if(cb.state == RALLY_STATE_END){
-                        val message = resources.getText(R.string.message_outside_period).toString()
-                        showAlertDialog(message)
-                        return@post
+        private fun openUrl(url: String) {
+            val uri: Uri = Uri.parse(url)
+            val intent = Intent(Intent.ACTION_VIEW, uri)
+            startActivity(intent)
+        }
+
+        private fun getStamp(cnId: String, srId: String, cpId: String) {
+            val futureStamp = dataStoreViewModel.rallyStamping(commonDataViewModel, cpId)
+            CompletableFuture.allOf(futureStamp).thenRun {
+                val mainHandler = Handler(Looper.getMainLooper())
+                mainHandler.post {
+                    // 選択中ラリーの表示更新
+                    // 達成したらcommonDataListに選択CommonDataのチェックポイントを追加する
+                    val cb: CommonData? =
+                        commonDataViewModel.commonDataList.find { it.cnId == cnId && it.srId == srId }
+                    val point: CheckPoint = CheckPoint.builder().cpId(cpId).build()
+
+                    if (cb != null) {
+                        if (cb.state == RALLY_STATE_END) {
+                            val message =
+                                resources.getText(R.string.message_outside_period).toString()
+                            showAlertDialog(message)
+                            return@post
+                        }
                     }
-                }
 
-                if (cb != null && cb!!.complete != null) {
-                    cb!!.complete!!.cp.add(point)
-                }
-                // 画面更新
+                    if (cb != null && cb!!.complete != null) {
+                        cb!!.complete!!.cp.add(point)
+                    }
+                    // 画面更新
 //                updateSelected()
-                updateUser()
+                    updateUser()
 
-                val message = resources.getText(R.string.stamp_camera_qr_get).toString()
-                showAlertDialog(message)
-            }
-        }
-    }
-
-    fun showLoadingDialog() :AlertDialog{
-        //val builder = AlertDialog.Builder(this, R.style.TransparentDialog)
-        val builder = AlertDialog.Builder(this)
-
-        val dialogBinding = FragmentCustomSplashScreenBinding.inflate(layoutInflater)
-
-        val layout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(50, 50, 50, 50)
-        }
-
-        val progressBar = ProgressBar(this).apply {
-            isIndeterminate = true
-            setPadding(50, 50, 50, 50)
-            //indeterminateTintList = ColorStateList.valueOf(Color.WHITE)
-        }
-        val textView = TextView(this).apply {
-            text = "Loading..."
-            //setTextColor(Color.WHITE)
-            gravity = Gravity.CENTER
-            setPadding(0, 20, 0, 0)
-        }
-        val button = Button(this, null, R.style.Stw_button).apply {
-            text = "リトライ"
-            setPadding(50, 50, 50, 50)
-            setOnClickListener {
-                // ボタンがクリックされた時の処理を記述
+                    val message = resources.getText(R.string.stamp_camera_qr_get).toString()
+                    showAlertDialog(message)
+                }
             }
         }
 
-        layout.addView(progressBar)
-        layout.addView(textView)
-        layout.addView(button)
+        fun showLoadingDialog(): AlertDialog {
+            //val builder = AlertDialog.Builder(this, R.style.TransparentDialog)
+            val builder = AlertDialog.Builder(this)
 
-        //builder.setView(layout)
-        builder.setView(dialogBinding.root)
-        builder.setCancelable(false) // 画面外タッチでキャンセルできないようにする
+            val dialogBinding = FragmentCustomSplashScreenBinding.inflate(layoutInflater)
 
-        return builder.create()
-    }
-
-    private inner class SwTouchListener : View.OnTouchListener {
-        override fun onTouch(v: View, event: MotionEvent): Boolean {
-            mGestureDetector.onTouchEvent(event)
-            return false
-        }
-    }
-
-    private inner class MGestureListener : GestureDetector.SimpleOnGestureListener() {
-        override fun onSingleTapUp(e: MotionEvent): Boolean {
-            val backgroundReceiver = Runnable {
-                Thread.sleep(1000)
-                binding.layoutReward.swReceiveReward.isClickable = true
+            val layout = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                setPadding(50, 50, 50, 50)
             }
-            val executeService = Executors.newSingleThreadExecutor()
 
-            binding.layoutReward.swReceiveReward.isClickable = false
-            executeService.submit(backgroundReceiver)
-            return true
+            val progressBar = ProgressBar(this).apply {
+                isIndeterminate = true
+                setPadding(50, 50, 50, 50)
+                //indeterminateTintList = ColorStateList.valueOf(Color.WHITE)
+            }
+            val textView = TextView(this).apply {
+                text = "Loading..."
+                //setTextColor(Color.WHITE)
+                gravity = Gravity.CENTER
+                setPadding(0, 20, 0, 0)
+            }
+            val button = Button(this, null, R.style.Stw_button).apply {
+                text = "リトライ"
+                setPadding(50, 50, 50, 50)
+                setOnClickListener {
+                    // ボタンがクリックされた時の処理を記述
+                }
+            }
+
+            layout.addView(progressBar)
+            layout.addView(textView)
+            layout.addView(button)
+
+            //builder.setView(layout)
+            builder.setView(dialogBinding.root)
+            builder.setCancelable(false) // 画面外タッチでキャンセルできないようにする
+
+            return builder.create()
         }
-    }
 
-    private inner class OnButtonClick : View.OnClickListener{
-        val rewardLayout = binding.layoutReward.layout
-        val stampLayout = binding.layoutStamp.layout
-        val receivedLayout = binding.layoutReceived.layout
-        val bgLayout = binding.bgLayout
-        val btStampList = binding.btStampList
-        val keywordLayout = binding.layoutKeyword.layout
-        val receiveUrlLayout = binding.layoutRewardUrl.layout
-        override fun onClick(v: View) {
-            when(v.id){
-                // スタンプカード表示切り替え
-                R.id.btStampList -> {
-                    if(stampLayout.visibility == View.VISIBLE){
-                        allClose()
+        private inner class SwTouchListener : View.OnTouchListener {
+            override fun onTouch(v: View, event: MotionEvent): Boolean {
+                mGestureDetector.onTouchEvent(event)
+                return false
+            }
+        }
+
+        private inner class MGestureListener : GestureDetector.SimpleOnGestureListener() {
+            override fun onSingleTapUp(e: MotionEvent): Boolean {
+                val backgroundReceiver = Runnable {
+                    Thread.sleep(1000)
+                    binding.layoutReward.swReceiveReward.isClickable = true
+                }
+                val executeService = Executors.newSingleThreadExecutor()
+
+                binding.layoutReward.swReceiveReward.isClickable = false
+                executeService.submit(backgroundReceiver)
+                return true
+            }
+        }
+
+        private inner class OnButtonClick : View.OnClickListener {
+            val rewardLayout = binding.layoutReward.layout
+            val stampLayout = binding.layoutStamp.layout
+            val receivedLayout = binding.layoutReceived.layout
+            val bgLayout = binding.bgLayout
+            val btStampList = binding.btStampList
+            val keywordLayout = binding.layoutKeyword.layout
+            val receiveUrlLayout = binding.layoutRewardUrl.layout
+            override fun onClick(v: View) {
+                when (v.id) {
+                    // スタンプカード表示切り替え
+                    R.id.btStampList -> {
+                        if (stampLayout.visibility == View.VISIBLE) {
+                            allClose()
+                        } else {
+                            val received = isRewardReceived()
+                            allClose()
+                            if (received) {
+                                if (!getRewardUrl().isNullOrBlank()) {
+                                    binding.layoutStamp.buttonReward.text =
+                                        resources.getText(R.string.show_reward_url)
+                                    binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_ripple)
+                                    binding.layoutStamp.buttonReward.isEnabled = true
+                                } else {
+                                    binding.layoutStamp.buttonReward.text =
+                                        resources.getText(R.string.stamp_got_reward)
+                                    binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_gray)
+                                    binding.layoutStamp.buttonReward.isEnabled = false
+                                }
+                            } else {
+                                binding.layoutReward.swReceiveReward.isChecked = false
+                                binding.layoutReward.swReceiveReward.isClickable = true
+                                binding.layoutStamp.buttonReward.text =
+                                    resources.getText(R.string.stamp_get_reward)
+                                // スタンプラリー達成していれば獲得ボタン有効
+                                isRewardEnabled()
+                            }
+
+                            stampLayout.visibility = View.VISIBLE
+                            bgLayout.visibility = View.VISIBLE
+                        }
                     }
-                    else {
+
+                    // スタンプカードに戻る
+                    R.id.btBackStampList -> {
+                        rewardLayout.visibility = View.GONE
+                        receivedLayout.visibility = View.GONE
+                        stampLayout.visibility = View.VISIBLE
+                        btStampList.isClickable = true
+                        // 獲得済み判定
                         val received = isRewardReceived()
-                        allClose()
-                        if(received){
-                            if(!getRewardUrl().isNullOrBlank()){
-                                binding.layoutStamp.buttonReward.text = resources.getText(R.string.show_reward_url)
+                        if (received) {
+                            if (!getRewardUrl().isNullOrBlank()) {
+                                binding.layoutStamp.buttonReward.text =
+                                    resources.getText(R.string.show_reward_url)
                                 binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_ripple)
                                 binding.layoutStamp.buttonReward.isEnabled = true
                             } else {
@@ -1207,87 +1268,54 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
                                 binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_gray)
                                 binding.layoutStamp.buttonReward.isEnabled = false
                             }
-                        }
-                        else {
-                            binding.layoutReward.swReceiveReward.isChecked = false
-                            binding.layoutReward.swReceiveReward.isClickable = true
-                            binding.layoutStamp.buttonReward.text = resources.getText(R.string.stamp_get_reward)
-                            // スタンプラリー達成していれば獲得ボタン有効
-                            isRewardEnabled()
-                        }
-
-                        stampLayout.visibility = View.VISIBLE
-                        bgLayout.visibility = View.VISIBLE
-                    }
-                }
-
-                // スタンプカードに戻る
-                R.id.btBackStampList -> {
-                    rewardLayout.visibility = View.GONE
-                    receivedLayout.visibility = View.GONE
-                    stampLayout.visibility = View.VISIBLE
-                    btStampList.isClickable = true
-                    // 獲得済み判定
-                    val received = isRewardReceived()
-                    if(received){
-                        if(!getRewardUrl().isNullOrBlank()){
-                            binding.layoutStamp.buttonReward.text = resources.getText(R.string.show_reward_url)
+                        } else {
+                            binding.layoutStamp.buttonReward.text =
+                                resources.getText(R.string.stamp_get_reward)
                             binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_ripple)
                             binding.layoutStamp.buttonReward.isEnabled = true
-                        } else {
-                            binding.layoutStamp.buttonReward.text = resources.getText(R.string.stamp_got_reward)
-                            binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_gray)
-                            binding.layoutStamp.buttonReward.isEnabled = false
                         }
                     }
-                    else {
-                        binding.layoutStamp.buttonReward.text = resources.getText(R.string.stamp_get_reward)
-                        binding.layoutStamp.buttonReward.setBackgroundResource(R.drawable.button_ripple)
-                        binding.layoutStamp.buttonReward.isEnabled = true
-                    }
-                }
 
-                // 報酬獲得画面を表示
-                R.id.button_reward -> {
-                    stampLayout.visibility = View.GONE
+                    // 報酬獲得画面を表示
+                    R.id.button_reward -> {
+                        stampLayout.visibility = View.GONE
 
-                    val received = isRewardReceived()
-                    val url = getRewardUrl()
-                    if(received){
-                        if(!url.isNullOrBlank()){
-                            receiveUrlLayout.visibility = View.VISIBLE
-                            binding.layoutRewardUrl.tvUrl.text = url
+                        val received = isRewardReceived()
+                        val url = getRewardUrl()
+                        if (received) {
+                            if (!url.isNullOrBlank()) {
+                                receiveUrlLayout.visibility = View.VISIBLE
+                                binding.layoutRewardUrl.tvUrl.text = url
+                            } else {
+                                receivedLayout.visibility = View.VISIBLE
+                            }
                         } else {
-                            receivedLayout.visibility = View.VISIBLE
+                            // 報酬未受取の場合は受取画面を表示
+                            rewardLayout.visibility = View.VISIBLE
                         }
                     }
-                    else {
-                        // 報酬未受取の場合は受取画面を表示
-                        rewardLayout.visibility = View.VISIBLE
+
+                    // キーワード入力フォームを表示
+                    R.id.openKeywordForm -> {
+                        allClose()
+                        bgLayout.visibility = View.VISIBLE
+                        keywordLayout.visibility = View.VISIBLE
                     }
-                }
 
-                // キーワード入力フォームを表示
-                R.id.openKeywordForm -> {
-                    allClose()
-                    bgLayout.visibility = View.VISIBLE
-                    keywordLayout.visibility = View.VISIBLE
-                }
-
-                //閉じるボタン
-                R.id.button_close -> {
-                    allClose()
+                    //閉じるボタン
+                    R.id.button_close -> {
+                        allClose()
+                    }
                 }
             }
-        }
 
-        private fun allClose(){
-            rewardLayout.visibility = View.GONE
-            receivedLayout.visibility = View.GONE
-            stampLayout.visibility = View.GONE
-            bgLayout.visibility = View.GONE
-            keywordLayout.visibility = View.GONE
-            receiveUrlLayout.visibility = View.GONE
+            private fun allClose() {
+                rewardLayout.visibility = View.GONE
+                receivedLayout.visibility = View.GONE
+                stampLayout.visibility = View.GONE
+                bgLayout.visibility = View.GONE
+                keywordLayout.visibility = View.GONE
+                receiveUrlLayout.visibility = View.GONE
+            }
         }
-    }
 }
