@@ -1051,19 +1051,16 @@ class MainActivity : AppCompatActivity(), GoogleMap.OnMarkerClickListener{
 
         // currentLocationが初期化されていなければfalse
         if (!this::currentLocation.isInitialized) {
-            if (!this::currentLocation.isInitialized) {
-                return false
-            }
-
-            Location.distanceBetween(
-                latitude,
-                longitude,
-                currentLocation.latitude,
-                currentLocation.longitude,
-                results
-            )
-
+            return false
         }
+
+        Location.distanceBetween(
+            latitude,
+            longitude,
+            currentLocation.latitude,
+            currentLocation.longitude,
+            results
+        )
         return results.get(0) < cd.maxRadius
     }
 
