@@ -193,6 +193,7 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
 
         //for(list in commonDataViewModel.commonDataList){
         //for (list in commonDataViewModel.commonDataList.filter { it.state == MainActivity.RALLY_STATE_PUBLIC }) {
+        rallyList.clear()
         for(list in l){
             var selected:Boolean = false
             if(selectCnId == list.cnId && selectSrId == list.srId){
@@ -240,7 +241,6 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
             }
             override fun onQueryTextSubmit(query: String): Boolean {
                 // submit button pressed
-                rallyList.clear()
                 searchWord = query
                 for(e in escapeList){
                     searchWord = searchWord?.replace("$e", "\\$e")
@@ -248,19 +248,20 @@ class RallyPublicFragment : Fragment(), RallyClickListener, DialogDismissListene
                 onViewCreated(view, savedInstanceState)
                 val inputMethodManager = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                 inputMethodManager.hideSoftInputFromWindow(binding.list.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
-                binding.list.requestFocus()
                 return true
             }
         })
 
         binding.search.setOnFocusChangeListener { v, hasFocus ->
-            rallyList.clear()
             searchWord = (v as SearchView).query.toString()
             for(e in escapeList){
                 searchWord = searchWord?.replace("$e", "\\$e")
             }
             onViewCreated(view, savedInstanceState)
         }
+
+        binding.search.isSubmitButtonEnabled = true
+//        binding.search.isQueryRefinementEnabled = true
     }
 
     private inner class ViewHolder internal constructor(private val binding: FragmentRallyListDialogItemBinding, private val clickListener: RallyClickListener) :
