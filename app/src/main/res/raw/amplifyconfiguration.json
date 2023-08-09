@@ -4,9 +4,9 @@
     "api": {
         "plugins": {
             "awsAPIPlugin": {
-                "stw": {
+                "cotamp": {
                     "endpointType": "GraphQL",
-                    "endpoint": "https://vcn46jcn6bgsdomp5oavso7t4y.appsync-api.ap-northeast-1.amazonaws.com/graphql",
+                    "endpoint": "https://ysuwyukcujhn3cvpz5xrqapljy.appsync-api.ap-northeast-1.amazonaws.com/graphql",
                     "region": "ap-northeast-1",
                     "authorizationType": "AWS_IAM"
                 }
@@ -23,24 +23,30 @@
                 },
                 "AppSync": {
                     "Default": {
-                        "ApiUrl": "https://vcn46jcn6bgsdomp5oavso7t4y.appsync-api.ap-northeast-1.amazonaws.com/graphql",
+                        "ApiUrl": "https://ysuwyukcujhn3cvpz5xrqapljy.appsync-api.ap-northeast-1.amazonaws.com/graphql",
                         "Region": "ap-northeast-1",
                         "AuthMode": "AWS_IAM",
-                        "ClientDatabasePrefix": "stw_AWS_IAM"
+                        "ClientDatabasePrefix": "cotamp_AWS_IAM"
+                    },
+                    "cotamp_AMAZON_COGNITO_USER_POOLS": {
+                        "ApiUrl": "https://ysuwyukcujhn3cvpz5xrqapljy.appsync-api.ap-northeast-1.amazonaws.com/graphql",
+                        "Region": "ap-northeast-1",
+                        "AuthMode": "AMAZON_COGNITO_USER_POOLS",
+                        "ClientDatabasePrefix": "cotamp_AMAZON_COGNITO_USER_POOLS"
                     }
                 },
                 "CredentialsProvider": {
                     "CognitoIdentity": {
                         "Default": {
-                            "PoolId": "ap-northeast-1:3e9f9f5e-b664-4d1c-892b-6d41a9072018",
+                            "PoolId": "ap-northeast-1:9e684e8e-8a09-4aa7-bf7d-f7e6277a0a8a",
                             "Region": "ap-northeast-1"
                         }
                     }
                 },
                 "CognitoUserPool": {
                     "Default": {
-                        "PoolId": "ap-northeast-1_p8zb4ROK1",
-                        "AppClientId": "1nsb174bemcb0epkn1jf59q3uo",
+                        "PoolId": "ap-northeast-1_8WGLezFMO",
+                        "AppClientId": "64cs69gqj34eelcbnkp7p7n6u7",
                         "Region": "ap-northeast-1"
                     }
                 },
@@ -63,13 +69,13 @@
                             "EMAIL"
                         ],
                         "verificationMechanisms": [
-                            "PHONE_NUMBER"
+                            "EMAIL"
                         ]
                     }
                 },
                 "S3TransferUtility": {
                     "Default": {
-                        "Bucket": "stw74f219dc163a42049a7db3eefc2dfbb5112016-develop",
+                        "Bucket": "cotampb1f2112061b54669841d78c27a27a57172316-prod",
                         "Region": "ap-northeast-1"
                     }
                 }
@@ -79,7 +85,7 @@
     "storage": {
         "plugins": {
             "awsS3StoragePlugin": {
-                "bucket": "stw74f219dc163a42049a7db3eefc2dfbb5112016-develop",
+                "bucket": "cotampb1f2112061b54669841d78c27a27a57172316-prod",
                 "region": "ap-northeast-1",
                 "defaultAccessLevel": "guest"
             }

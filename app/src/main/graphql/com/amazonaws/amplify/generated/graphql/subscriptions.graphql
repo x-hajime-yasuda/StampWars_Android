@@ -1,0 +1,157 @@
+# this is an auto generated file. This will be overwritten
+
+subscription OnCreateStwUser($filter: ModelSubscriptionStwUserFilterInput) {
+  onCreateStwUser(filter: $filter) {
+    id
+    name
+    complete {
+      cnId
+      srId
+      history
+      got
+      __typename
+    }
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+
+subscription OnUpdateStwUser($filter: ModelSubscriptionStwUserFilterInput) {
+  onUpdateStwUser(filter: $filter) {
+    id
+    name
+    complete {
+      cnId
+      srId
+      history
+      got
+      __typename
+    }
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+
+subscription OnDeleteStwUser($filter: ModelSubscriptionStwUserFilterInput) {
+  onDeleteStwUser(filter: $filter) {
+    id
+    name
+    complete {
+      cnId
+      srId
+      history
+      got
+      __typename
+    }
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+
+subscription OnCreateStwCompany(
+  $filter: ModelSubscriptionStwCompanyFilterInput
+) {
+  onCreateStwCompany(filter: $filter) {
+    id
+    name
+    maxEntries
+    rallyList {
+      srId
+      title
+      startAt
+      endAt
+      displayStartAt
+      displayEndAt
+      place
+      total
+      detail
+      status
+      completeCount
+      rewardTitle
+      rewardDetail
+      __typename
+    }
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+
+subscription OnUpdateStwCompany(
+  $filter: ModelSubscriptionStwCompanyFilterInput
+) {
+  onUpdateStwCompany(filter: $filter) {
+    id
+    name
+    maxEntries
+    rallyList {
+      srId
+      title
+      startAt
+      endAt
+      displayStartAt
+      displayEndAt
+      place
+      total
+      detail
+      status
+      completeCount
+      rewardTitle
+      rewardDetail
+      __typename
+    }
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}
+
+subscription OnDeleteStwCompany(
+  $filter: ModelSubscriptionStwCompanyFilterInput
+) {
+  onDeleteStwCompany(filter: $filter) {
+    id
+    name
+    maxEntries
+    rallyList {
+      srId
+      title
+      startAt
+      endAt
+      displayStartAt
+      displayEndAt
+      place
+      total
+      detail
+      status
+      completeCount
+      rewardTitle
+      rewardDetail
+      __typename
+    }
+    createdAt
+    updatedAt
+    _version
+    _deleted
+    _lastChangedAt
+    __typename
+  }
+}

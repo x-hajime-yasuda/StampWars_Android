@@ -1,0 +1,11 @@
+{
+  "AppSyncApiName": "cotamp",
+  "DynamoDBBillingMode": "PAY_PER_REQUEST",
+  "DynamoDBEnableServerSideEncryption": false,
+  "AuthCognitoUserPoolId": {
+    "Fn::GetAtt": [
+      "authcotampb08be104",
+      "Outputs.UserPoolId"
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "resourceName": "s3db24b344",
+  "policyUUID": "db24b344",
+  "bucketName": "cotampb1f2112061b54669841d78c27a27a571",
+  "storageAccess": "authAndGuest",
+  "guestAccess": [
+    "READ"
+  ],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "triggerFunction": "NONE",
+  "groupAccess": {}
+}

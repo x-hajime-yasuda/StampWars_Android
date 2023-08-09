@@ -1,0 +1,23 @@
+{
+  "prod": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-cotamp-prod-72316-authRole",
+      "UnauthRoleArn": "arn:aws:iam::077165689288:role/amplify-cotamp-prod-72316-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::077165689288:role/amplify-cotamp-prod-72316-authRole",
+      "Region": "ap-northeast-1",
+      "DeploymentBucketName": "amplify-cotamp-prod-72316-deployment",
+      "UnauthRoleName": "amplify-cotamp-prod-72316-unauthRole",
+      "StackName": "amplify-cotamp-prod-72316",
+      "StackId": "arn:aws:cloudformation:ap-northeast-1:077165689288:stack/amplify-cotamp-prod-72316/d12352b0-164d-11ee-b3d9-0eee96c1c1ad",
+      "AmplifyAppId": "d3ns994c8v98iz"
+    },
+    "categories": {
+      "auth": {
+        "cotampb08be104": {}
+      },
+      "storage": {
+        "s3db24b344": {}
+      }
+    }
+  }
+}

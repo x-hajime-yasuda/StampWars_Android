@@ -1,0 +1,60 @@
+# This "input" configures a global authorization rule to enable public access to
+# all models in this schema. Learn more about authorization rules here: https://docs.amplify.aws/cli/graphql/authorization-rules
+input AMPLIFY { globalAuthRule: AuthRule = { allow: public } } # FOR TESTING ONLY!
+
+type Query {
+  getQREncode(qr: String): String @aws_iam @aws_cognito_user_pools
+  getQRDecode(qr: String): String @aws_iam @aws_cognito_user_pools
+  getServerTime: String @aws_iam @aws_cognito_user_pools
+}
+
+
+type Complete {
+	cnId: String!
+	srId: String!
+	history: Int
+	got: Boolean
+	cp: [CheckPoint]
+}
+
+type CheckPoint {
+	cpId: String
+	cpName: String
+	latitude: String
+	longitude: String
+}
+
+type Rally {
+	srId: String
+	title: String
+	startAt: AWSTimestamp
+	endAt: AWSTimestamp
+	place: String
+	total: Int
+	detail: String
+	status: Int
+	completeCount: Int
+	rewardTitle: String
+	rewardDetail: String
+	cp: [CheckPoint]
+}
+
+type StwUser @model @auth(rules: [
+  { allow: private, provider: userPools, operations: [create, read, update, delete] },
+  { allow: public, provider: iam }
+  ]) {
+	id: ID!
+	name: String
+	complete: [Complete]
+}
+
+type StwCompany @model @auth(rules: [
+  { allow: private, provider: userPools, operations: [create, read, update, delete] },
+  { allow: public, provider: iam }
+  ]) {
+	id: ID!
+	name: String
+	maxEntries: Int
+	rallyList: [Rally]
+}
+
